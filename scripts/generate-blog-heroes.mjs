@@ -166,6 +166,48 @@ const dangerZoneMotif = `
   <text x="1440" y="730" font-family="${FONT}" font-size="19" font-weight="600" fill="#7c8aab" text-anchor="end">to shrink the window</text>
 `;
 
+// Pork shoulder post: two grouped-bar comparisons — trim loss (bone-in 12%
+// vs boneless 6%, visibly different) next to cook loss (38% vs 38%, identical
+// heights) — showing the whole yield gap is a trim-only effect.
+const porkTrimMotif = `
+  <g>
+    <text x="1030" y="470" font-family="${FONT}" font-size="18" font-weight="700" fill="#7c8aab" text-anchor="middle">TRIM LOSS</text>
+    <rect x="990" y="620" width="80" height="100" rx="10" fill="url(#title)"/>
+    <rect x="1110" y="670" width="80" height="50" rx="10" fill="url(#title)" fill-opacity="0.5"/>
+    <text x="1030" y="605" font-family="${FONT}" font-size="16" font-weight="700" fill="#fdba74" text-anchor="middle">12%</text>
+    <text x="1150" y="655" font-family="${FONT}" font-size="16" font-weight="700" fill="#fdba74" text-anchor="middle">6%</text>
+    <text x="1030" y="745" font-family="${FONT}" font-size="14" font-weight="600" fill="#7c8aab" text-anchor="middle">BONE-IN</text>
+    <text x="1150" y="745" font-family="${FONT}" font-size="14" font-weight="600" fill="#7c8aab" text-anchor="middle">BONELESS</text>
+  </g>
+  <g>
+    <text x="1330" y="470" font-family="${FONT}" font-size="18" font-weight="700" fill="#7c8aab" text-anchor="middle">COOK LOSS</text>
+    <rect x="1290" y="580" width="80" height="140" rx="10" fill="#7c8aab" fill-opacity="0.55"/>
+    <rect x="1410" y="580" width="80" height="140" rx="10" fill="#7c8aab" fill-opacity="0.55"/>
+    <text x="1330" y="565" font-family="${FONT}" font-size="16" font-weight="700" fill="#7c8aab" text-anchor="middle">38%</text>
+    <text x="1450" y="565" font-family="${FONT}" font-size="16" font-weight="700" fill="#7c8aab" text-anchor="middle">38%</text>
+    <text x="1330" y="745" font-family="${FONT}" font-size="14" font-weight="600" fill="#7c8aab" text-anchor="middle">BONE-IN</text>
+    <text x="1450" y="745" font-family="${FONT}" font-size="14" font-weight="600" fill="#7c8aab" text-anchor="middle">BONELESS</text>
+  </g>
+`;
+
+// Fuel BTU-vs-burn-rate post: a rising bar chart of lb/hr ideal burn rate by
+// fuel, each bar labeled with its BTU/lb — splits top both, the counter-
+// intuitive pairing the post is about.
+const fuelBtuMotif = `
+  <g>
+    <text x="1230" y="450" font-family="${FONT}" font-size="17" font-weight="700" fill="#7c8aab" text-anchor="middle" letter-spacing="1">LB/HR BURN RATE (BTU/LB LABELED)</text>
+    <rect x="1070" y="712" width="86" height="110" rx="10" fill="#7c8aab" fill-opacity="0.4"/>
+    <rect x="1186" y="672" width="86" height="150" rx="10" fill="#f59e0b" fill-opacity="0.65"/>
+    <rect x="1302" y="502" width="86" height="320" rx="10" fill="url(#title)"/>
+    <text x="1113" y="695" font-family="${FONT}" font-size="17" font-weight="700" fill="#7c8aab" text-anchor="middle">8,000</text>
+    <text x="1229" y="655" font-family="${FONT}" font-size="17" font-weight="700" fill="#fdba74" text-anchor="middle">9,500</text>
+    <text x="1345" y="485" font-family="${FONT}" font-size="17" font-weight="700" fill="#fdba74" text-anchor="middle">12,000</text>
+    <text x="1113" y="850" font-family="${FONT}" font-size="16" font-weight="600" fill="#7c8aab" text-anchor="middle">PELLETS</text>
+    <text x="1229" y="850" font-family="${FONT}" font-size="16" font-weight="600" fill="#7c8aab" text-anchor="middle">CHARCOAL</text>
+    <text x="1345" y="850" font-family="${FONT}" font-size="16" font-weight="600" fill="#7c8aab" text-anchor="middle">SPLITS</text>
+  </g>
+`;
+
 const jobs = [
   { file: 'public/blog/turkey-doesnt-stall.jpg', label: 'TURKEY: NO STALL', motif: turkeyMotif },
   { file: 'public/blog/cold-weather-fuel-math.jpg', label: 'COLD-WEATHER FUEL', motif: fuelMotif },
@@ -175,6 +217,8 @@ const jobs = [
   { file: 'public/blog/prime-brisket-yield-myth.jpg', label: 'BRISKET YIELD MATH', motif: yieldMotif },
   { file: 'public/blog/brisket-mass-exponents.jpg', label: 'MASS VS. THE STALL', motif: massExponentMotif },
   { file: 'public/blog/turkey-danger-zone-clock.jpg', label: 'TURKEY DANGER ZONE', motif: dangerZoneMotif },
+  { file: 'public/blog/pork-shoulder-bone-in-yield-gap.jpg', label: 'BONE-IN VS BONELESS', motif: porkTrimMotif },
+  { file: 'public/blog/wood-splits-btu-vs-burn-rate.jpg', label: 'WOOD: BTU VS BURN', motif: fuelBtuMotif },
 ];
 
 for (const { file, label, motif } of jobs) {
