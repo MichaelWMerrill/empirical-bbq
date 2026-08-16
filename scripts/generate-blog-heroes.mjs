@@ -208,6 +208,40 @@ const fuelBtuMotif = `
   </g>
 `;
 
+// Pit-type post: two crossing lines — climb-to-stall time rising left-to-right
+// across cooker types (pellet fastest, kamado slowest), stall length falling
+// the opposite way (pellet longest, kamado shortest) — the inverse trade the
+// post is about.
+const pitTradeoffMotif = `
+  <g stroke-width="6" fill="none" opacity="0.9">
+    <polyline points="140,700 620,590 1020,460 1440,240" stroke="url(#title)" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g stroke-width="6" fill="none" opacity="0.32">
+    <polyline points="140,710 620,760 1020,800 1440,830" stroke="#7c8aab" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 14"/>
+  </g>
+  <text x="1440" y="215" font-family="${FONT}" font-size="20" font-weight="600" fill="#fdba74" text-anchor="end">climb to stall — pellet fast, kamado slow</text>
+  <text x="1440" y="800" font-family="${FONT}" font-size="20" font-weight="500" fill="#7c8aab" text-anchor="end">stall length — pellet long, kamado short</text>
+`;
+
+// Wrap-timing post: five bars fading from full height/opacity (wrap right at
+// stall onset = full benefit) down to a sliver (wrap at the top of the 12°F
+// band = no benefit, same as never wrapping) — the continuous dial the post
+// is about.
+const wrapBandMotif = `
+  <g>
+    <text x="1230" y="450" font-family="${FONT}" font-size="17" font-weight="700" fill="#7c8aab" text-anchor="middle" letter-spacing="1">WRAP BENEFIT ACROSS THE 12&#176;F BAND</text>
+    <rect x="990" y="680" width="70" height="140" rx="8" fill="url(#title)"/>
+    <rect x="1080" y="720" width="70" height="100" rx="8" fill="url(#title)" fill-opacity="0.7"/>
+    <rect x="1170" y="760" width="70" height="60" rx="8" fill="url(#title)" fill-opacity="0.45"/>
+    <rect x="1260" y="795" width="70" height="25" rx="8" fill="#7c8aab" fill-opacity="0.5"/>
+    <rect x="1350" y="810" width="70" height="10" rx="6" fill="#7c8aab" fill-opacity="0.35"/>
+    <text x="1025" y="665" font-family="${FONT}" font-size="15" font-weight="700" fill="#fdba74" text-anchor="middle">155&#176;F</text>
+    <text x="1385" y="798" font-family="${FONT}" font-size="15" font-weight="700" fill="#7c8aab" text-anchor="middle">167&#176;F</text>
+    <text x="1025" y="845" font-family="${FONT}" font-size="13" font-weight="600" fill="#7c8aab" text-anchor="middle">WRAP EARLY</text>
+    <text x="1385" y="845" font-family="${FONT}" font-size="13" font-weight="600" fill="#7c8aab" text-anchor="middle">WRAP LATE</text>
+  </g>
+`;
+
 const jobs = [
   { file: 'public/blog/turkey-doesnt-stall.jpg', label: 'TURKEY: NO STALL', motif: turkeyMotif },
   { file: 'public/blog/cold-weather-fuel-math.jpg', label: 'COLD-WEATHER FUEL', motif: fuelMotif },
@@ -219,6 +253,8 @@ const jobs = [
   { file: 'public/blog/turkey-danger-zone-clock.jpg', label: 'TURKEY DANGER ZONE', motif: dangerZoneMotif },
   { file: 'public/blog/pork-shoulder-bone-in-yield-gap.jpg', label: 'BONE-IN VS BONELESS', motif: porkTrimMotif },
   { file: 'public/blog/wood-splits-btu-vs-burn-rate.jpg', label: 'WOOD: BTU VS BURN', motif: fuelBtuMotif },
+  { file: 'public/blog/pit-type-climb-vs-stall-tradeoff.jpg', label: 'CLIMB VS. STALL TRADE', motif: pitTradeoffMotif },
+  { file: 'public/blog/wrap-timing-not-just-what.jpg', label: 'WRAP: TIMING MATTERS', motif: wrapBandMotif },
 ];
 
 for (const { file, label, motif } of jobs) {
