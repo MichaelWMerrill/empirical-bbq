@@ -242,6 +242,50 @@ const wrapBandMotif = `
   </g>
 `;
 
+// Turkey hold-window post: two cooling curves falling toward the shared
+// 140°F floor at very different rates — brisket's slow, long approach vs.
+// turkey's fast crossing — the gap the post is about.
+const turkeyHoldMotif = `
+  <text x="1230" y="460" font-family="${FONT}" font-size="17" font-weight="700" fill="#7c8aab" text-anchor="middle" letter-spacing="1">TIME TO THE 140&#176;F FLOOR</text>
+  <g>
+    <line x1="1010" y1="500" x2="1060" y2="500" stroke="url(#title)" stroke-width="6" stroke-linecap="round"/>
+    <text x="1075" y="506" font-family="${FONT}" font-size="16" font-weight="700" fill="#fdba74">BRISKET ~6.4H</text>
+    <line x1="1010" y1="535" x2="1060" y2="535" stroke="#7c8aab" stroke-width="6" stroke-linecap="round" stroke-dasharray="2 10"/>
+    <text x="1075" y="541" font-family="${FONT}" font-size="16" font-weight="600" fill="#7c8aab">TURKEY ~2.5H</text>
+  </g>
+  <g stroke-width="6" fill="none" opacity="0.9">
+    <polyline points="140,650 500,690 900,730 1300,775 1440,790" stroke="url(#title)" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g stroke-width="6" fill="none" opacity="0.32">
+    <polyline points="140,650 350,750 550,810 750,828 1440,832" stroke="#7c8aab" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 14"/>
+  </g>
+`;
+
+// Stall-exponent-universality post: two grouped-bar comparisons — climb
+// exponent (bars visibly different heights, brisket vs pork) next to stall
+// exponent (bars identical height and full brand color, both 0.333) — the
+// cross-protein match the post is about.
+const stallUniversalityMotif = `
+  <g>
+    <text x="1030" y="470" font-family="${FONT}" font-size="18" font-weight="700" fill="#7c8aab" text-anchor="middle">CLIMB EXPONENT</text>
+    <rect x="990" y="630" width="80" height="90" rx="10" fill="#7c8aab" fill-opacity="0.55"/>
+    <rect x="1110" y="610" width="80" height="110" rx="10" fill="#7c8aab" fill-opacity="0.55"/>
+    <text x="1030" y="615" font-family="${FONT}" font-size="15" font-weight="700" fill="#7c8aab" text-anchor="middle">-1.073</text>
+    <text x="1150" y="595" font-family="${FONT}" font-size="15" font-weight="700" fill="#7c8aab" text-anchor="middle">-1.086</text>
+    <text x="1030" y="745" font-family="${FONT}" font-size="14" font-weight="600" fill="#7c8aab" text-anchor="middle">BRISKET</text>
+    <text x="1150" y="745" font-family="${FONT}" font-size="14" font-weight="600" fill="#7c8aab" text-anchor="middle">PORK</text>
+  </g>
+  <g>
+    <text x="1330" y="470" font-family="${FONT}" font-size="18" font-weight="700" fill="#7c8aab" text-anchor="middle">STALL EXPONENT</text>
+    <rect x="1290" y="580" width="80" height="140" rx="10" fill="url(#title)"/>
+    <rect x="1410" y="580" width="80" height="140" rx="10" fill="url(#title)"/>
+    <text x="1330" y="565" font-family="${FONT}" font-size="16" font-weight="700" fill="#fdba74" text-anchor="middle">0.333</text>
+    <text x="1450" y="565" font-family="${FONT}" font-size="16" font-weight="700" fill="#fdba74" text-anchor="middle">0.333</text>
+    <text x="1330" y="745" font-family="${FONT}" font-size="14" font-weight="600" fill="#7c8aab" text-anchor="middle">BRISKET</text>
+    <text x="1450" y="745" font-family="${FONT}" font-size="14" font-weight="600" fill="#7c8aab" text-anchor="middle">PORK</text>
+  </g>
+`;
+
 const jobs = [
   { file: 'public/blog/turkey-doesnt-stall.jpg', label: 'TURKEY: NO STALL', motif: turkeyMotif },
   { file: 'public/blog/cold-weather-fuel-math.jpg', label: 'COLD-WEATHER FUEL', motif: fuelMotif },
@@ -255,6 +299,8 @@ const jobs = [
   { file: 'public/blog/wood-splits-btu-vs-burn-rate.jpg', label: 'WOOD: BTU VS BURN', motif: fuelBtuMotif },
   { file: 'public/blog/pit-type-climb-vs-stall-tradeoff.jpg', label: 'CLIMB VS. STALL TRADE', motif: pitTradeoffMotif },
   { file: 'public/blog/wrap-timing-not-just-what.jpg', label: 'WRAP: TIMING MATTERS', motif: wrapBandMotif },
+  { file: 'public/blog/turkey-hold-window-gap.jpg', label: 'TURKEY HOLD WINDOW', motif: turkeyHoldMotif },
+  { file: 'public/blog/stall-exponent-universality.jpg', label: 'STALL EXPONENT: 0.333', motif: stallUniversalityMotif },
 ];
 
 for (const { file, label, motif } of jobs) {
