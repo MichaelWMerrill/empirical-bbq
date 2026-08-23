@@ -286,7 +286,67 @@ const stallUniversalityMotif = `
   </g>
 `;
 
+// Physics-of-the-stall primer post: the classic climb-plateau-climb curve
+// with the 155°F stall threshold marked as a reference line, plus a small
+// droplet glyph for evaporative cooling — the foundational post the newer
+// stall-math deep-dives (climate, pit-type, wrap-timing) all link back to.
+const stallPrimerMotif = `
+  <line x1="140" y1="470" x2="1440" y2="470" stroke="#7c8aab" stroke-width="3" stroke-dasharray="4 10" opacity="0.5"/>
+  <text x="980" y="415" font-family="${FONT}" font-size="19" font-weight="600" fill="#7c8aab" text-anchor="middle">155&#176;F stall threshold (225&#176;F pit)</text>
+  <g stroke-width="7" fill="none" opacity="0.95">
+    <polyline points="140,800 320,620 460,500 620,472 900,462 1330,462 1440,250" stroke="url(#title)" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(760,560) scale(1.6)" opacity="0.8">
+    <path d="M0,-22 C10,-6 16,4 16,12 A16,16 0 1 1 -16,12 C-16,4 -10,-6 0,-22 Z" fill="#7dd3fc" opacity="0.55"/>
+  </g>
+`;
+
+// Science-of-bark post: two rub-particle clusters — coarse 16-mesh (few
+// large orange dots, more surface area) vs. fine table-ground (many small
+// grey dots, packed tight) — the granulation point the post is about.
+const barkGranulationMotif = `
+  <text x="1230" y="450" font-family="${FONT}" font-size="17" font-weight="700" fill="#7c8aab" text-anchor="middle" letter-spacing="1">RUB SURFACE AREA</text>
+  <g fill="url(#title)" opacity="0.9">
+    <circle cx="1020" cy="590" r="16"/>
+    <circle cx="1080" cy="612" r="14"/>
+    <circle cx="1135" cy="583" r="18"/>
+    <circle cx="1045" cy="655" r="15"/>
+    <circle cx="1110" cy="665" r="16"/>
+    <circle cx="1165" cy="632" r="13"/>
+  </g>
+  <text x="1092" y="720" font-family="${FONT}" font-size="15" font-weight="600" fill="#fdba74" text-anchor="middle">COARSE 16-MESH</text>
+  <g fill="#7c8aab" opacity="0.55">
+    <circle cx="1245" cy="580" r="5"/><circle cx="1275" cy="580" r="5"/><circle cx="1305" cy="580" r="5"/><circle cx="1335" cy="580" r="5"/><circle cx="1365" cy="580" r="5"/>
+    <circle cx="1245" cy="612" r="5"/><circle cx="1275" cy="612" r="5"/><circle cx="1305" cy="612" r="5"/><circle cx="1335" cy="612" r="5"/><circle cx="1365" cy="612" r="5"/>
+    <circle cx="1245" cy="644" r="5"/><circle cx="1275" cy="644" r="5"/><circle cx="1305" cy="644" r="5"/><circle cx="1335" cy="644" r="5"/><circle cx="1365" cy="644" r="5"/>
+    <circle cx="1245" cy="676" r="5"/><circle cx="1275" cy="676" r="5"/><circle cx="1305" cy="676" r="5"/><circle cx="1335" cy="676" r="5"/><circle cx="1365" cy="676" r="5"/>
+  </g>
+  <text x="1305" y="720" font-family="${FONT}" font-size="15" font-weight="600" fill="#7c8aab" text-anchor="middle">FINE GROUND</text>
+`;
+
+// Chemistry-of-wood-smoke post: three smoke-color puffs — thick white
+// (creosote/smolder), thin pale blue (600-800°F clean burn), grey-black
+// (oxygen-starved) — the three combustion phases the post walks through.
+const smokeColorMotif = `
+  <text x="1230" y="450" font-family="${FONT}" font-size="17" font-weight="700" fill="#7c8aab" text-anchor="middle" letter-spacing="1">SMOKE COLOR = COMBUSTION PHASE</text>
+  <g fill="#cbd5e1" opacity="0.85">
+    <circle cx="1020" cy="655" r="38"/><circle cx="1058" cy="628" r="44"/><circle cx="1090" cy="658" r="36"/>
+  </g>
+  <text x="1055" y="730" font-family="${FONT}" font-size="14" font-weight="600" fill="#e2e8f0" text-anchor="middle">THICK WHITE</text>
+  <g fill="#7dd3fc" opacity="0.55">
+    <circle cx="1205" cy="655" r="26"/><circle cx="1233" cy="633" r="30"/><circle cx="1262" cy="656" r="24"/>
+  </g>
+  <text x="1233" y="730" font-family="${FONT}" font-size="14" font-weight="600" fill="#7dd3fc" text-anchor="middle">THIN BLUE</text>
+  <g fill="#334155" opacity="0.9" stroke="#7c8aab" stroke-width="1.5">
+    <circle cx="1385" cy="655" r="36"/><circle cx="1420" cy="630" r="40"/><circle cx="1452" cy="656" r="34"/>
+  </g>
+  <text x="1418" y="730" font-family="${FONT}" font-size="14" font-weight="600" fill="#7c8aab" text-anchor="middle">GREY-BLACK</text>
+`;
+
 const jobs = [
+  { file: 'public/blog/physics-of-the-stall.jpg', label: 'PHYSICS OF THE STALL', motif: stallPrimerMotif },
+  { file: 'public/blog/science-of-smoke.jpg', label: 'SCIENCE OF BARK', motif: barkGranulationMotif },
+  { file: 'public/blog/chemistry-of-wood-smoke.jpg', label: 'CLEAN BLUE VS WHITE', motif: smokeColorMotif },
   { file: 'public/blog/turkey-doesnt-stall.jpg', label: 'TURKEY: NO STALL', motif: turkeyMotif },
   { file: 'public/blog/cold-weather-fuel-math.jpg', label: 'COLD-WEATHER FUEL', motif: fuelMotif },
   { file: 'public/blog/ribs-two-clocks.jpg', label: 'RIBS: TWO CLOCKS', motif: ribsMotif },

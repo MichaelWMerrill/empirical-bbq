@@ -1,44 +1,33 @@
 ---
 title: 'The Physics of the Stall: Why Your Smoked Meat Stops Cooking'
-description: 'Demystifying the most frustrating part of a low-and-slow cook. Learn the thermal dynamics behind the barbecue stall and how to handle it.'
+description: "My first overnight brisket parked at 158°F for two and a half hours and I was sure the thermometer had died. It hadn't — the meat was sweating, and the site's own stall constants explain exactly why."
 pubDate: '2026-07-13'
+updatedDate: '2026-08-23'
 heroImage: '/blog/physics-of-the-stall.jpg'
 ---
 
-Every backyard pitmaster knows the panic. You are smoking a beautiful pork shoulder or brisket, the temperature is climbing beautifully, and suddenly—around 150°F to 170°F—the numbers stop moving. 
+First overnight brisket I ever ran, the probe climbed clean out of the fridge-cold 40s, and I felt good about it — on pace, nothing weird. Then somewhere around 155°F it just stopped. Sat there for two and a half hours while I circled the smoker convinced the probe battery had died or the coals had gone out. Neither. I'd hit the stall, and at the time I had no idea what that even was.
 
-Hours pass. The temperature doesn't budge. You start wondering if your thermometer is broken or if you ran out of charcoal. 
+Backyard lore used to blame it on fat suddenly rendering or collagen breaking down all at once. It's neither. The stall is evaporative cooling, and it's the same physics as sweating.
 
-Welcome to **The Stall**. 
+## The meat is sweating, not stalling
 
-For decades, backyard lore claimed the stall was caused by a sudden rendering of internal fat or collagen breaking down. But a few years ago, scientists proved that the stall is actually pure physics. It is a phenomenon called **evaporative cooling**.
+Raw meat is roughly 70% water. As the smoker's heat pushes into it, that moisture migrates to the surface and starts evaporating — and evaporation isn't free. Turning liquid into vapor consumes energy, and that energy comes out of the meat itself, exactly the way sweat cools your skin on a hot day.
 
-## 1. The Thermodynamics of "Sweating"
+> Once the surface is evaporating fast enough to carry away heat at the same rate the smoker is delivering it, the internal temperature stops climbing. Not because the meat stopped cooking — because it hit a balance point.
 
-To understand the stall, think about what happens to your body on a hot day. When you overheat, you sweat. As the air moves over your skin, that sweat evaporates. The process of a liquid turning into a gas requires energy (heat), which is pulled away from your body, cooling you down.
+The site's own thermal model puts a real number on where that balance point lands: at a 225°F pit, brisket's stall threshold sits at 155°F — which is almost exactly where mine parked. Push the pit hotter and the threshold moves too — 162°F at 250°F, 170°F at 275°F — because a hotter pit needs a hotter surface before evaporation can keep pace with it.
 
-A massive piece of raw meat is roughly 70% water. As it cooks inside a smoker, the heat coaxes that internal moisture to the surface. 
+## Airflow, humidity, and surface area move the plateau
 
-Once the meat hits roughly 150°F, the rate of moisture evaporating from the surface perfectly balances the heat energy being pushed into the meat by your smoker. 
+None of those three variables changes *whether* you stall — they change how long you're stuck there. More airflow across the meat's surface pulls moisture off faster, which sounds like it should shorten the stall but does the opposite: faster evaporation means stronger cooling, which holds the balance point longer. A fan-forced pellet cooker or a well-drafted offset stalls harder than a sealed, low-airflow kamado for exactly that reason. Humid cooker air shrinks the vapor-pressure gap the moisture is evaporating into, so it evaporates — and cools — less, which is a shorter, milder stall. A flat, wide brisket has more surface to evaporate from than a compact pork butt, so the two cuts don't stall quite the same way even side by side on the same pit.
 
-> **The Physics Law:** The meat has reached thermal equilibrium. Until that surface moisture completely dries up, the internal temperature cannot rise. 
+I've gone deep on each of these separately since: [climate humidity](/blog/climate-stall-paradox) moves the stall's onset temperature and duration in opposite directions depending on which way the air is drying, and [cooker type](/blog/pit-type-climb-vs-stall-tradeoff) trades climb speed for stall length in a way that isn't where you'd guess. This post is the primer; those are the arithmetic.
 
-## 2. The Variables That Control the Stall
+## Wrapping doesn't slow the stall down — it stops it
 
-The duration of your stall depends heavily on your cooking environment:
+There are exactly two ways out, and the site's wrap constants describe both. Foil creates a sealed, 100%-humidity environment around the meat — no more evaporation possible, so the stall ends immediately and the climb resumes at a sharply accelerated rate. Butcher paper is semi-permeable: it slows evaporation without fully stopping it, so it shortens the stall without eliminating it outright. Riding it out naked means waiting for the surface to run out of easily accessible moisture on its own, which happens eventually but adds real hours to the total cook.
 
-*   **Airflow:** More convective airflow — a well-drafted offset, or a fan-forced pellet cooker — drives faster surface evaporation, and faster evaporation means stronger cooling. That *deepens and lengthens* the stall. A low-airflow, high-thermal-mass cooker like a ceramic kamado evaporates less, so its stall is shorter and milder (even though its gentler heat makes the overall cook the longest).
-*   **Humidity:** Evaporation is driven by the vapor-pressure gap between the wet surface and the surrounding air. Humid cooker air — a sealed kamado, a heavy water pan — shrinks that gap, so the meat evaporates and cools *less*, giving a shorter, milder stall. (Actively spritzing is the exception: it adds surface water that must itself boil off, which can stretch the plateau back out.)
-*   **Meat Surface Area:** A flat, wide brisket has more surface area for evaporation than a compact, round pork butt, meaning its stall characteristics will differ.
+It turns out *when* you wrap matters as much as *what* you wrap in — wrap too late and you can lose almost the entire benefit, foil included. That's a big enough idea that it got [its own post](/blog/wrap-timing-not-just-what).
 
-Our [stall predictor](https://empiricalbbq.com/stall-predictor) models exactly these effects — pit airflow, cooker humidity, wrap, and regional climate — separating the length of the stall from the total cook time.
-
-## 3. How to Break the Stall Cleanly
-
-You have two scientifically sound choices when hitting the stall:
-
-### Path A: The Texas Crutch (Wrapping)
-By wrapping the meat tightly in peach butcher paper or aluminum foil, you completely eliminate evaporation. The moisture cannot escape into the air, which instantly destroys the evaporative cooling effect. The temperature will immediately skyrocket past the stall. 
-
-### Path B: Driving Through Naked
-If you choose not to wrap, you must simply wait out the laws of physics. Eventually, the surface of the meat will run out of easily accessible moisture. The surface dries out, the bark hardens, and the internal temperature will begin to climb again. This results in superior bark but adds 2 to 4 hours to your total cook time.
+The **[stall predictor](/stall-predictor)** models all of this together — pit airflow, cooker humidity, wrap choice, and regional climate — and separates the length of the stall from the length of the whole cook, so you can see which lever is actually worth pulling before the next brisket goes on.
