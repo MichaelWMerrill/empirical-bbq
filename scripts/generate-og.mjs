@@ -33,7 +33,7 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" 
   <rect x="90" y="150" rx="22" ry="22" width="392" height="46" fill="#f97316" fill-opacity="0.12" stroke="#f97316" stroke-opacity="0.4"/>
   <text x="118" y="181" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="20" font-weight="700" letter-spacing="3" fill="#fdba74">FITTED TO FIELD GUIDANCE</text>
 
-  <text x="88" y="318" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="96" font-weight="800" letter-spacing="-2" fill="url(#title)">EMPIRICAL BBQ</text>
+  <text x="88" y="318" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="86" font-weight="800" letter-spacing="-2" fill="url(#title)">EMPIRICAL BBQ</text>
 
   <text x="92" y="386" font-family="DejaVu Sans, Verdana, Arial, sans-serif" font-size="38" font-weight="500" fill="#aeb8d0">Cook-time, yield &amp; fuel calculators</text>
 
