@@ -2,6 +2,7 @@
 title: 'How Much Barbecue Per Person (and How Much to Actually Buy)'
 description: 'The two-number problem behind every cookout: how much cooked meat each guest eats, and how much raw weight you have to buy to get there after shrinkage.'
 pubDate: '2026-07-20'
+heroImage: '/blog/how-much-bbq-per-person.jpg'
 ---
 
 Every cookout starts with the same anxious question: **how much meat do I buy?** Get it wrong and you either run out an hour in or eat leftovers for a week. The mistake most people make is planning around the *cooked* weight — when the number that matters at the butcher is the *raw* weight.

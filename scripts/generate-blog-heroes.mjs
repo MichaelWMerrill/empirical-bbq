@@ -343,7 +343,43 @@ const smokeColorMotif = `
   <text x="1418" y="730" font-family="${FONT}" font-size="14" font-weight="600" fill="#7c8aab" text-anchor="middle">GREY-BLACK</text>
 `;
 
+// Faux-cambro hold post: three descending bars for how long each hold vessel
+// keeps meat above 140°F (faux cambro ~6h, bare cooler ~3h, counter ~1h),
+// plus a small note that a warm oven hold never crosses the floor at all.
+const holdWindowMotif = `
+  <text x="1230" y="450" font-family="${FONT}" font-size="17" font-weight="700" fill="#7c8aab" text-anchor="middle" letter-spacing="1">HOURS ABOVE THE 140&#176;F FLOOR</text>
+  <text x="1230" y="474" font-family="${FONT}" font-size="14" font-weight="500" fill="#7c8aab" text-anchor="middle" opacity="0.7">(warm oven hold near 150&#176;F never crosses it)</text>
+  <g>
+    <rect x="1070" y="502" width="86" height="320" rx="10" fill="url(#title)"/>
+    <rect x="1186" y="652" width="86" height="170" rx="10" fill="#f59e0b" fill-opacity="0.65"/>
+    <rect x="1302" y="762" width="86" height="60" rx="10" fill="#7c8aab" fill-opacity="0.5"/>
+    <text x="1113" y="495" font-family="${FONT}" font-size="18" font-weight="700" fill="#fdba74" text-anchor="middle">~6H</text>
+    <text x="1229" y="645" font-family="${FONT}" font-size="18" font-weight="700" fill="#fdba74" text-anchor="middle">~3H</text>
+    <text x="1345" y="755" font-family="${FONT}" font-size="18" font-weight="700" fill="#7c8aab" text-anchor="middle">~1H</text>
+    <text x="1113" y="850" font-family="${FONT}" font-size="15" font-weight="600" fill="#7c8aab" text-anchor="middle">CAMBRO</text>
+    <text x="1229" y="850" font-family="${FONT}" font-size="15" font-weight="600" fill="#7c8aab" text-anchor="middle">COOLER</text>
+    <text x="1345" y="850" font-family="${FONT}" font-size="15" font-weight="600" fill="#7c8aab" text-anchor="middle">COUNTER</text>
+  </g>
+`;
+
+// Per-person BBQ post: raw-vs-cooked bar pair showing the ~50% shrinkage tax
+// that turns a 20 lb raw brisket into 10 lb of servable cooked meat.
+const yieldTaxMotif = `
+  <text x="1290" y="450" font-family="${FONT}" font-size="17" font-weight="700" fill="#7c8aab" text-anchor="middle" letter-spacing="1">RAW BOUGHT &#8594; COOKED SERVED</text>
+  <g>
+    <rect x="1150" y="502" width="100" height="320" rx="10" fill="#7c8aab" fill-opacity="0.45"/>
+    <rect x="1330" y="662" width="100" height="160" rx="10" fill="url(#title)"/>
+    <text x="1200" y="485" font-family="${FONT}" font-size="19" font-weight="700" fill="#7c8aab" text-anchor="middle">20 LB</text>
+    <text x="1380" y="645" font-family="${FONT}" font-size="19" font-weight="700" fill="#fdba74" text-anchor="middle">10 LB</text>
+    <text x="1200" y="850" font-family="${FONT}" font-size="16" font-weight="600" fill="#7c8aab" text-anchor="middle">RAW</text>
+    <text x="1380" y="850" font-family="${FONT}" font-size="16" font-weight="600" fill="#fdba74" text-anchor="middle">COOKED</text>
+    <text x="1290" y="600" font-family="${FONT}" font-size="16" font-weight="700" fill="#fca5a5" text-anchor="middle">~50% YIELD</text>
+  </g>
+`;
+
 const jobs = [
+  { file: 'public/blog/faux-cambro-holding.jpg', label: 'THE FAUX CAMBRO', motif: holdWindowMotif },
+  { file: 'public/blog/how-much-bbq-per-person.jpg', label: 'HOW MUCH TO BUY', motif: yieldTaxMotif },
   { file: 'public/blog/physics-of-the-stall.jpg', label: 'PHYSICS OF THE STALL', motif: stallPrimerMotif },
   { file: 'public/blog/science-of-smoke.jpg', label: 'SCIENCE OF BARK', motif: barkGranulationMotif },
   { file: 'public/blog/chemistry-of-wood-smoke.jpg', label: 'CLEAN BLUE VS WHITE', motif: smokeColorMotif },
