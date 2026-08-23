@@ -377,7 +377,58 @@ const yieldTaxMotif = `
   </g>
 `;
 
+// Wrap-permeability post: a "shown vs. used" node diagram — permeability_psi
+// sits next to computeModel() but a dashed, ×-marked line shows it's never
+// read; the real drivers (stall_duration_multiplier / post_stall_climb_
+// modifier) connect with a solid line.
+const permeabilityMotif = `
+  <text x="1230" y="465" font-family="${FONT}" font-size="17" font-weight="700" fill="#7c8aab" text-anchor="middle" letter-spacing="1">WHAT computeModel() ACTUALLY READS</text>
+  <g>
+    <rect x="970" y="520" width="260" height="52" rx="10" fill="#7c8aab" fill-opacity="0.3" stroke="#7c8aab" stroke-opacity="0.5" stroke-width="1.5"/>
+    <text x="1100" y="551" font-family="${FONT}" font-size="14" font-weight="700" fill="#7c8aab" text-anchor="middle">permeability_psi</text>
+    <text x="1100" y="592" font-family="${FONT}" font-size="12" font-weight="600" fill="#7c8aab" text-anchor="middle" opacity="0.7">never read &#8212; decorative</text>
+  </g>
+  <g>
+    <rect x="970" y="656" width="260" height="52" rx="10" fill="#f97316" fill-opacity="0.16" stroke="#f97316" stroke-opacity="0.6" stroke-width="1.5"/>
+    <text x="1100" y="687" font-family="${FONT}" font-size="13" font-weight="700" fill="#fdba74" text-anchor="middle">stall_duration_multiplier</text>
+    <text x="1100" y="728" font-family="${FONT}" font-size="12" font-weight="600" fill="#fdba74" text-anchor="middle" opacity="0.85">drives the model directly</text>
+  </g>
+  <rect x="1330" y="555" width="160" height="150" rx="12" fill="none" stroke="#7c8aab" stroke-width="2" stroke-opacity="0.6"/>
+  <text x="1410" y="628" font-family="${FONT}" font-size="15" font-weight="700" fill="#fdba74" text-anchor="middle">compute</text>
+  <text x="1410" y="649" font-family="${FONT}" font-size="15" font-weight="700" fill="#fdba74" text-anchor="middle">Model()</text>
+  <line x1="1230" y1="546" x2="1330" y2="600" stroke="#7c8aab" stroke-width="3" stroke-dasharray="3 8" opacity="0.5"/>
+  <text x="1275" y="565" font-family="${FONT}" font-size="20" font-weight="700" fill="#fca5a5" text-anchor="middle">&#215;</text>
+  <line x1="1230" y1="682" x2="1330" y2="640" stroke="url(#title)" stroke-width="4"/>
+`;
+
+// Turkey-scheduler post: same "shown vs. used" node diagram, reused
+// deliberately — the wrap/wrap-temp/climate controls are visible on the
+// scheduler UI but never read for turkey's no-stall branch; pit temp/type/
+// weight are what actually moves the schedule.
+const turkeyGatingMotif = `
+  <text x="1230" y="465" font-family="${FONT}" font-size="17" font-weight="700" fill="#7c8aab" text-anchor="middle" letter-spacing="1">TURKEY: SHOWN ON-SCREEN VS. ACTUALLY USED</text>
+  <g>
+    <rect x="970" y="520" width="260" height="52" rx="10" fill="#7c8aab" fill-opacity="0.3" stroke="#7c8aab" stroke-opacity="0.5" stroke-width="1.5"/>
+    <text x="1100" y="546" font-family="${FONT}" font-size="13" font-weight="700" fill="#7c8aab" text-anchor="middle">wrap type / wrap temp</text>
+    <text x="1100" y="563" font-family="${FONT}" font-size="13" font-weight="700" fill="#7c8aab" text-anchor="middle">/ regional climate</text>
+    <text x="1100" y="592" font-family="${FONT}" font-size="12" font-weight="600" fill="#7c8aab" text-anchor="middle" opacity="0.7">visible in the UI, never read</text>
+  </g>
+  <g>
+    <rect x="970" y="656" width="260" height="52" rx="10" fill="#f97316" fill-opacity="0.16" stroke="#f97316" stroke-opacity="0.6" stroke-width="1.5"/>
+    <text x="1100" y="687" font-family="${FONT}" font-size="14" font-weight="700" fill="#fdba74" text-anchor="middle">pit temp / pit type / weight</text>
+    <text x="1100" y="728" font-family="${FONT}" font-size="12" font-weight="600" fill="#fdba74" text-anchor="middle" opacity="0.85">these move the schedule</text>
+  </g>
+  <rect x="1330" y="555" width="160" height="150" rx="12" fill="none" stroke="#7c8aab" stroke-width="2" stroke-opacity="0.6"/>
+  <text x="1410" y="628" font-family="${FONT}" font-size="15" font-weight="700" fill="#fdba74" text-anchor="middle">turkey</text>
+  <text x="1410" y="649" font-family="${FONT}" font-size="15" font-weight="700" fill="#fdba74" text-anchor="middle">schedule</text>
+  <line x1="1230" y1="546" x2="1330" y2="600" stroke="#7c8aab" stroke-width="3" stroke-dasharray="3 8" opacity="0.5"/>
+  <text x="1275" y="565" font-family="${FONT}" font-size="20" font-weight="700" fill="#fca5a5" text-anchor="middle">&#215;</text>
+  <line x1="1230" y1="682" x2="1330" y2="640" stroke="url(#title)" stroke-width="4"/>
+`;
+
 const jobs = [
+  { file: 'public/blog/wrap-permeability-is-decorative.jpg', label: 'PERMEABILITY MYTH', motif: permeabilityMotif },
+  { file: 'public/blog/turkey-scheduler-dead-controls.jpg', label: 'TURKEY: DEAD CONTROLS', motif: turkeyGatingMotif },
   { file: 'public/blog/faux-cambro-holding.jpg', label: 'THE FAUX CAMBRO', motif: holdWindowMotif },
   { file: 'public/blog/how-much-bbq-per-person.jpg', label: 'HOW MUCH TO BUY', motif: yieldTaxMotif },
   { file: 'public/blog/physics-of-the-stall.jpg', label: 'PHYSICS OF THE STALL', motif: stallPrimerMotif },
