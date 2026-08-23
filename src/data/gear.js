@@ -8,11 +8,13 @@
  * affiliate URL is listed under ROADMAP_GEAR (below) as a stub for a human to
  * fill in, and is never rendered until it has a real `url`.
  *
- * Disclosure text is defined once and reused by every module, matching the
- * existing "As an Amazon Associate…" convention across the site.
+ * Disclosure text is defined once and reused by every module. Kept
+ * network-agnostic (not "As an Amazon Associate…") since GEAR is Amazon-only
+ * today but ROADMAP_GEAR is meant to gain links from other affiliate programs
+ * over time, and a module can render picks from more than one network at once.
  */
 
-export const ASSOCIATE_DISCLOSURE = 'As an Amazon Associate I earn from qualifying purchases.';
+export const ASSOCIATE_DISCLOSURE = 'As an affiliate, I earn from qualifying purchases made through links on this page.';
 
 // Live catalog — real associate links.
 export const GEAR = {

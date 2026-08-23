@@ -40,6 +40,8 @@ is a code problem:
       the crawl signals. As of the last GSC check they had *not* yet been
       recrawled, so AdSense very likely evaluated a smaller site than exists.
       Re-check Search Console coverage before requesting another review.
+      **Still true as of 2026-08-23** — confirmed not yet recrawled. Do not
+      request review yet; re-check GSC coverage again before doing so.
 - [ ] **Site age** — the domain is weeks old. Nothing to implement; trust
       signals (age, backlinks, organic traffic) accrue with time.
 
@@ -51,6 +53,11 @@ Optional depth work if a second rejection lands: the seven blog posts run
 341–757 words each, which is thin for a content-quality assessment. Expanding
 the shortest ones (`how-much-bbq-per-person`, `faux-cambro-holding`,
 `science-of-smoke`) is the highest-leverage next lever.
+- [x] `science-of-smoke` expanded (646 words).
+- [x] `how-much-bbq-per-person` expanded (343 → 811 words; worked yield
+      examples per protein, first-person hook).
+- [x] `faux-cambro-holding` expanded (358 → 841 words; k-value comparison
+      across hold profiles, worked hours-safe examples).
 
 ## Post-deploy — extensionless URL migration (manual, one-time)
 After the extensionless-canonical migration deploys, do these by hand:
@@ -59,6 +66,9 @@ After the extensionless-canonical migration deploys, do these by hand:
       `/cook-scheduler`).
 - [ ] Spot-check live: `curl -I https://empiricalbbq.com/brisket-calculator.html`
       returns `301` → `/brisket-calculator`, and the extensionless URL returns `200`.
+      (2026-08-23: `public/_redirects` confirmed correct in-repo for all four
+      tool pages plus `/index.html`, `/contact.html`, `/privacy.html`; the live
+      curl check itself still needs running from an unrestricted network.)
 
 ## Ambitious
 - [ ] 8. Live Cook Mode / PWA (L) — log actual probe temps against the
@@ -89,8 +99,13 @@ After the extensionless-canonical migration deploys, do these by hand:
       `Content-Security-Policy` (was `-Report-Only`), same validated allowlist.
       Watch for any blocked ad/analytics resource post-deploy; add its host or
       revert to report-only to re-observe if needed.
-- [ ] Turnstile production site key — manual, via the Cloudflare dashboard.
+- [x] Turnstile production site key — confirmed live in production as of
+      2026-08-23 (was flagged as an open item; already done).
 - [ ] GSC sitemap resubmission — manual, post-deploy.
 - [ ] Whole-app security audit — the `/api/contact` Worker (input validation,
       injection, Turnstile verification) plus CSP/security-header config.
       Deferred to after Phase 7 per project owner.
+- [x] CI — `.github/workflows/ci.yml` added 2026-08-23: runs `npm test` (the
+      golden regression suite, including ribs) and `npm run build` on every
+      PR and push to `main`. Nothing previously gated merges on the test
+      suite passing.
