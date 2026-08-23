@@ -3,6 +3,11 @@
   "type": "module",
   "version": "1.0.0",
   "description": "Empirical BBQ — physics-based pitmaster calculators, migrated to Astro.",
+  "homepage": "https://empiricalbbq.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MichaelWMerrill/empirical-bbq"
+  },
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
