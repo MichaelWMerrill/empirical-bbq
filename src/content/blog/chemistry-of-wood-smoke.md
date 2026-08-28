@@ -4,6 +4,8 @@ description: "Choked the exhaust down on my first few cooks thinking I was trapp
 pubDate: '2026-07-13'
 updatedDate: '2026-08-23'
 heroImage: '/blog/chemistry-of-wood-smoke.jpg'
+pillar: science
+protein: [general]
 ---
 
 First few cooks I ran on an offset, I choked the exhaust stack most of the way shut, figuring I was trapping more smoke in with the meat instead of letting it blow straight out the chimney. Thick white smoke rolled off the pit for hours — looked, to a beginner, like I was doing something right. The bark came out bitter enough to leave a slight numbness on the tongue. Closing that damper wasn't concentrating flavor. It was changing the chemistry of the fire itself, and not in a good direction.

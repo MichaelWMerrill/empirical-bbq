@@ -3,6 +3,8 @@ title: 'The Humidity Paradox: Why Dry Air Can Stall Your Brisket Sooner AND Long
 description: "Arid air drops your stall's onset temperature, stretches the plateau out, then speeds the finish once you wrap. Humid air moves all three the other way. The three multipliers behind it explain why the same brisket reads differently by region."
 pubDate: '2026-07-29'
 heroImage: '/blog/climate-stall-paradox.jpg'
+pillar: science
+protein: [beef_brisket]
 ---
 
 Smoked the same brisket twice, three weeks apart — same rub, same offset, same 225°F setpoint. First cook was on the Gulf coast in July, something like 85% humidity, air you could wring out. The second was at altitude out west, air so dry it felt like it was pulling the moisture straight out of my sinuses. I expected the dry cook to just run hotter and faster across the board — less resistance, more of everything. Instead the dry brisket hit its stall *sooner* by internal temperature than the humid one, then sat there noticeably longer before it broke. Once I wrapped it, it caught up fast — faster than any cook I'd run before. The humid brisket did the reverse on every count: held off stalling until a higher temperature, blew through the plateau in a hurry once it started, then climbed at an entirely ordinary pace after wrapping. Same meat, same pit, same method — three numbers, each one moving in its own direction depending on what the sky was doing that day.

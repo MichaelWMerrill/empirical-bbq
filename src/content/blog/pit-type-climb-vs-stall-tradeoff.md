@@ -3,6 +3,8 @@ title: "Your Cooker Trades Climb Speed for Stall Length — and Not the Way You'
 description: "Picked a pellet grill for a faster cook and it delivered — right up until the stall, which ran longer than any cook I'd done on a kamado. The site's own pit-profile math explains why the fastest cooker to the plateau is also the slowest through it."
 pubDate: '2026-08-09'
 heroImage: '/blog/pit-type-climb-vs-stall-tradeoff.jpg'
+pillar: science
+protein: [general]
 ---
 
 Borrowed a friend's pellet grill for a brisket after years running an offset, expecting the fan-forced airflow to just make everything faster — set it, forget it, dinner sooner. It did hit the stall noticeably quicker than my usual cooks. Then it sat there. And sat there. By the time it finally broke, I'd spent longer stalled on the "fast" cooker than I ever had on a buddy's kamado, which is famous for being slow and gentle start to finish. I'd optimized for the wrong half of the cook.

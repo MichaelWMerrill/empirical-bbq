@@ -3,6 +3,8 @@ title: "Turkey's Danger-Zone Clock Runs Different (and Stricter) Than Brisket's"
 description: "The slow-and-low instinct that's fine on a brisket is a real food-safety risk on a whole turkey. Poultry is treated as potentially contaminated throughout, and the site's danger-zone model explains exactly why — plus the two levers that fix it."
 pubDate: '2026-08-05'
 heroImage: '/blog/turkey-danger-zone-clock.jpg'
+pillar: planning-safety
+protein: [turkey]
 ---
 
 Ran my first whole turkey the same way I run every brisket — low pit, patient cook, let the smoke do its thing. A brisket buddy watching over my shoulder asked how long the bird had been between 40°F and 140°F. I didn't have an answer, because I'd never once tracked that number on a brisket. Told him "a while, probably," and he didn't love that. Turns out he was right to push, and it took me digging into how this site actually models the two proteins to understand why a shrug is fine on one and not the other.

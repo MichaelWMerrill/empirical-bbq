@@ -3,6 +3,8 @@ title: "The Cook Scheduler's Fire-Up Time Is a Range Wearing a Point Estimate's 
 description: "Planned a dinner party off the scheduler's single fire-up clock time and cut it close on a naked brisket that ran long. The tool had already told me how much slack to expect — I just wasn't looking at the number that carried it."
 pubDate: '2026-08-28'
 heroImage: '/blog/cook-scheduler-confidence-band.jpg'
+pillar: how-to
+protein: [general]
 ---
 
 Planned a dinner around the cook scheduler's fire-up time like it was gospel — big number on the screen, "5:14 AM," so that's when the alarm went off. Ran the brisket naked, no wrap, chasing bark. By the time guests were due, the meat still hadn't hit its finish temp, and I spent the last hour serving apologies instead of slices. Went back to the scheduler afterward looking for what I'd missed, and found it sitting in the small print under the big clock the whole time: a range, not a single number, and it had been wider for exactly the wrap choice I'd made.

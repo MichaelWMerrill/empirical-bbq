@@ -4,6 +4,8 @@ description: 'The two-number problem behind every cookout: how much cooked meat 
 pubDate: '2026-07-20'
 updatedDate: '2026-08-23'
 heroImage: '/blog/how-much-bbq-per-person.jpg'
+pillar: planning-safety
+protein: [general]
 ---
 
 Bought what felt like an absurd amount of pork butt for a 20-person cookout once — two full 8 lb bone-in butts, more than 1.5 lb of raw meat per guest — and still ran out with people still in line. I'd priced it off the *cooked* weight I wanted to serve, the same way I'd shop for a roast chicken dinner, and never accounted for how much of that raw weight simply isn't there anymore by the time it comes off the smoker.

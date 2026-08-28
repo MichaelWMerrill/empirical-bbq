@@ -3,6 +3,8 @@ title: "Wrapping Doesn't Just Depend on What — It Depends on When"
 description: "I foiled a brisket right as the plateau looked like it was finally breaking on its own, feeling clever about it. The model says I picked almost exactly the one moment that wrap could do nothing for me."
 pubDate: '2026-08-09'
 heroImage: '/blog/wrap-timing-not-just-what.jpg'
+pillar: myth-bust
+protein: [beef_brisket]
 ---
 
 Rode out a stall longer than usual on purpose, chasing bark, then wrapped in foil the second the temperature finally twitched upward again — figured I'd get the crutch's full push right as I needed it most. The brisket finished fine, but slower than a foil-wrapped cook has any business running. Went back through the site's own stall math afterward and found out why: I hadn't wrapped early enough to matter. I'd ridden out essentially the whole stall naked and then applied foil to a plateau that was already about to end on its own.

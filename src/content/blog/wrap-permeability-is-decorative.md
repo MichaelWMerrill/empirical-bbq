@@ -3,6 +3,8 @@ title: "The Wrap's Permeability Number Never Actually Touches the Stall Model"
 description: "Went looking for why foil kills the stall outright while paper only trims it, and found a clean-looking permeability number sitting right in the site's wrap config. Traced it through the code and it goes nowhere — it's decoration, not a driver."
 pubDate: '2026-08-23'
 heroImage: '/blog/wrap-permeability-is-decorative.jpg'
+pillar: myth-bust
+protein: [general]
 ---
 
 Went looking for the reason paper knocks the stall down by roughly half while foil kills it outright, and thought I'd found the whole explanation sitting right there in the site's own wrap config: every wrap option carries a `permeability_psi` value — 1.0 for naked, 0.35 for butcher paper, 0.0 for foil. Clean story, right there in the data. Less permeable, less evaporation escapes, shorter stall. I got about half a paragraph into writing that explanation before I actually traced where the number goes in the code. It doesn't go anywhere.

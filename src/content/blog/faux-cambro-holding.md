@@ -4,6 +4,8 @@ description: 'The physics of resting and holding a cook — why a cooler full of
 pubDate: '2026-07-20'
 updatedDate: '2026-08-23'
 heroImage: '/blog/faux-cambro-holding.jpg'
+pillar: planning-safety
+protein: [general]
 ---
 
 Pulled a brisket four hours before my guests were due to show up, panicked, and stuffed it straight into an empty cooler with the lid shut — no towels, no preheating, nothing. Checked it ninety minutes later expecting a still-hot brisket and found one that had already slid into the low 130s. Learned the hard way that a cooler by itself isn't insulation you can trust; it's just a box, and an empty box holds heat about as well as the air inside it did to begin with.

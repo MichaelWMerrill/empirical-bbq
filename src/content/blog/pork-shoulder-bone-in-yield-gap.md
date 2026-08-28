@@ -3,6 +3,8 @@ title: "The Bone-In vs. Boneless Pork Shoulder Yield Gap Happens Before the Smok
 description: "Boneless butts cost a real premium and pull a higher percentage of cooked meat — but the entire yield gap between the two cuts happens at the trim step, before either one sees smoke. Running the true cost per pound tells a different story than the sticker price does."
 pubDate: '2026-08-16'
 heroImage: '/blog/pork-shoulder-bone-in-yield-gap.jpg'
+pillar: myth-bust
+protein: [pork_shoulder]
 ---
 
 Grabbed a boneless butt instead of my usual bone-in for a cook last month, mostly because it was sitting right next to the bone-in at the same weight and I figured less waste, more pulled pork, worth the few extra dollars a pound. It pulled beautifully, yielded noticeably more than I remembered my bone-in cooks running. Felt like a smart trade. Then I actually ran both cuts through the site's yield math side by side and found out the premium I paid bought me less than I thought — not because the boneless butt cooks differently, but because it doesn't cook differently at all.

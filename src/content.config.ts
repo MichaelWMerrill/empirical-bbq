@@ -14,6 +14,8 @@ const blog = defineCollection({
     // recrawl signal rather than a silent edit.
     updatedDate: z.coerce.date().optional(),
     heroImage: z.string().optional(),
+    pillar: z.enum(['science', 'myth-bust', 'how-to', 'planning-safety', 'tool-spotlight']),
+    protein: z.array(z.enum(['beef_brisket', 'pork_shoulder', 'pork_ribs', 'turkey', 'general'])).min(1),
   }),
 });
 

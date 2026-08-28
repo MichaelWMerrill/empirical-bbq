@@ -3,6 +3,8 @@ title: "Wood Splits Carry the Most BTU/lb — and Burn Through the Most Pounds a
 description: "More energy per pound and fewer pounds burned per hour sound like the same claim. In the site's fuel model they aren't even close — hardwood splits top the BTU/lb chart and the burn-rate chart at the same time."
 pubDate: '2026-08-16'
 heroImage: '/blog/wood-splits-btu-vs-burn-rate.jpg'
+pillar: science
+protein: [general]
 ---
 
 Switched an offset over to splits-only for a competition-style cook, reasoning that wood carries more energy per pound than charcoal, so I'd be feeding the firebox less often. Packed the truck for what I figured would be a lighter fuel run than my usual charcoal cooks. Came up short before dinner and had to make an emergency wood run mid-cook, which is exactly the kind of thing you don't want to be doing three hours before people show up hungry. More BTUs per pound turned out to have nothing to do with how many pounds an hour I was actually burning.

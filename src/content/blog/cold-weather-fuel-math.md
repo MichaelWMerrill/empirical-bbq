@@ -3,6 +3,8 @@ title: 'What a 22°F Cook Actually Costs You in Charcoal'
 description: "I budgeted one bag of charcoal for a New Year's Day brisket and burned through nearly three before it hit the stall. The math behind why cold, windy cooks eat fuel so much faster."
 pubDate: '2026-07-27'
 heroImage: '/blog/cold-weather-fuel-math.jpg'
+pillar: science
+protein: [beef_brisket]
 ---
 
 New Year's Day, 22°F, wind coming across the yard hard enough to rock the offset's chimney flap. I loaded the firebox the same way I always do for a 12-hour brisket — figured on one 20-lb bag of charcoal, maybe a little extra for the cold, grabbed a second bag "just in case."

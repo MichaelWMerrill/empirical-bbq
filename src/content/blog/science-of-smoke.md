@@ -4,6 +4,8 @@ description: "Rubbed a brisket with fine table-ground pepper because it's what I
 pubDate: '2026-07-12'
 updatedDate: '2026-08-23'
 heroImage: '/blog/science-of-smoke.jpg'
+pillar: science
+protein: [beef_brisket]
 ---
 
 Ran out of coarse 16-mesh pepper mid-rub once and finished the job with regular fine table-ground stuff, figuring pepper is pepper. The bark that came off that brisket was noticeably thinner and flakier than my usual — same rub recipe, same smoker, same wood, same everything else. Took some reading afterward to understand that bark isn't burnt seasoning sitting on top of the meat. It's a chemical reaction, and the rub's particle size was one of the inputs I hadn't been thinking about at all.

@@ -3,6 +3,8 @@ title: "Why a Prime Brisket Doesn't Yield More Meat Than a Select"
 description: "I paid up for Prime expecting more meat on the platter and got less than a Select brisket the same raw weight would have given me. The trim-and-cook math behind why the priciest grade is also the worst-yielding one."
 pubDate: '2026-08-02'
 heroImage: '/blog/prime-brisket-yield-myth.jpg'
+pillar: myth-bust
+protein: [beef_brisket]
 ---
 
 Splurged on a Prime packer for a big cook, figured the extra marbling meant extra everything — flavor, tenderness, and yes, more meat for the money. Sliced it up next to a Choice brisket I'd run a month earlier at the same raw weight, and the Prime came in visibly lighter on the cutting board. Same 14 lb on the scale at the butcher counter. Fewer slices at the table. I went back and ran both through the numbers, and the gap wasn't a fluke.
