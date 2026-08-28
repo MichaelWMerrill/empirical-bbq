@@ -426,7 +426,46 @@ const turkeyGatingMotif = `
   <line x1="1230" y1="682" x2="1330" y2="640" stroke="url(#title)" stroke-width="4"/>
 `;
 
+// Party planner post: three appetite-multiplier bars (light 0.7x, standard
+// 1.0x, hearty 1.35x) with the asymmetric percentage swings called out —
+// light's -30% vs hearty's +35% is the whole point.
+const appetiteMotif = `
+  <text x="1230" y="460" font-family="${FONT}" font-size="17" font-weight="700" fill="#7c8aab" text-anchor="middle" letter-spacing="1">APPETITE MULTIPLIER</text>
+  <text x="1230" y="484" font-family="${FONT}" font-size="14" font-weight="500" fill="#7c8aab" text-anchor="middle" opacity="0.75">light &#8722;30% &#183; hearty +35% (not symmetric)</text>
+  <g>
+    <rect x="1070" y="680" width="86" height="140" rx="10" fill="#7c8aab" fill-opacity="0.45"/>
+    <rect x="1186" y="620" width="86" height="200" rx="10" fill="#f59e0b" fill-opacity="0.65"/>
+    <rect x="1302" y="550" width="86" height="270" rx="10" fill="url(#title)"/>
+    <text x="1113" y="663" font-family="${FONT}" font-size="17" font-weight="700" fill="#7c8aab" text-anchor="middle">0.7&#215;</text>
+    <text x="1229" y="603" font-family="${FONT}" font-size="17" font-weight="700" fill="#fdba74" text-anchor="middle">1.0&#215;</text>
+    <text x="1345" y="533" font-family="${FONT}" font-size="17" font-weight="700" fill="#fdba74" text-anchor="middle">1.35&#215;</text>
+    <text x="1113" y="850" font-family="${FONT}" font-size="16" font-weight="600" fill="#7c8aab" text-anchor="middle">LIGHT</text>
+    <text x="1229" y="850" font-family="${FONT}" font-size="16" font-weight="600" fill="#7c8aab" text-anchor="middle">STANDARD</text>
+    <text x="1345" y="850" font-family="${FONT}" font-size="16" font-weight="600" fill="#7c8aab" text-anchor="middle">HEARTY</text>
+  </g>
+`;
+
+// Cook scheduler post: three horizontal confidence-band bars (foil narrowest,
+// naked widest) with a point-estimate marker on each, showing the range the
+// single fire-up clock time is quietly built on top of.
+const confidenceBandMotif = `
+  <text x="1230" y="460" font-family="${FONT}" font-size="17" font-weight="700" fill="#7c8aab" text-anchor="middle" letter-spacing="1">FIRE-UP ESTIMATE WIDTH BY WRAP</text>
+  <g stroke-linecap="round">
+    <line x1="1040" y1="560" x2="1234" y2="560" stroke="#7c8aab" stroke-opacity="0.55" stroke-width="16"/>
+    <circle cx="1137" cy="560" r="9" fill="#0d121b" stroke="#7c8aab" stroke-width="3"/>
+    <line x1="1053" y1="650" x2="1334" y2="650" stroke="#f59e0b" stroke-opacity="0.7" stroke-width="16"/>
+    <circle cx="1193" cy="650" r="9" fill="#0d121b" stroke="#f59e0b" stroke-width="3"/>
+    <rect x="1080" y="732" width="393" height="16" rx="8" fill="url(#title)"/>
+    <circle cx="1277" cy="740" r="9" fill="#0d121b" stroke="#fb923c" stroke-width="3"/>
+  </g>
+  <text x="960" y="565" font-family="${FONT}" font-size="15" font-weight="700" fill="#7c8aab" text-anchor="end">FOIL &#177;15%</text>
+  <text x="960" y="655" font-family="${FONT}" font-size="15" font-weight="700" fill="#fdba74" text-anchor="end">PAPER &#177;20%</text>
+  <text x="960" y="745" font-family="${FONT}" font-size="15" font-weight="700" fill="#fdba74" text-anchor="end">NAKED &#177;25%</text>
+`;
+
 const jobs = [
+  { file: 'public/blog/party-planner-appetite-asymmetry.jpg', label: 'THE APPETITE DIAL', motif: appetiteMotif },
+  { file: 'public/blog/cook-scheduler-confidence-band.jpg', label: 'FIRE-UP CONFIDENCE', motif: confidenceBandMotif },
   { file: 'public/blog/wrap-permeability-is-decorative.jpg', label: 'PERMEABILITY MYTH', motif: permeabilityMotif },
   { file: 'public/blog/turkey-scheduler-dead-controls.jpg', label: 'TURKEY: DEAD CONTROLS', motif: turkeyGatingMotif },
   { file: 'public/blog/faux-cambro-holding.jpg', label: 'THE FAUX CAMBRO', motif: holdWindowMotif },
