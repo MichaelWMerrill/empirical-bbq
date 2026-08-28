@@ -4,6 +4,8 @@ description: "My first overnight brisket parked at 158°F for two and a half hou
 pubDate: '2026-07-13'
 updatedDate: '2026-08-23'
 heroImage: '/blog/physics-of-the-stall.jpg'
+pillar: science
+protein: [beef_brisket]
 ---
 
 First overnight brisket I ever ran, the probe climbed clean out of the fridge-cold 40s, and I felt good about it — on pace, nothing weird. Then somewhere around 155°F it just stopped. Sat there for two and a half hours while I circled the smoker convinced the probe battery had died or the coals had gone out. Neither. I'd hit the stall, and at the time I had no idea what that even was.

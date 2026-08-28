@@ -3,6 +3,8 @@ title: "The Party Planner's Appetite Dial Isn't Centered Where You'd Think"
 description: "Bumped the appetite setting from standard to hearty for a crew of hungry coworkers, expecting a modest bump in the shopping list. The raw weight jumped 35% — while dropping to light only saves 30%. The dial isn't symmetric, and the code says exactly why."
 pubDate: '2026-08-28'
 heroImage: '/blog/party-planner-appetite-asymmetry.jpg'
+pillar: planning-safety
+protein: [general]
 ---
 
 Planned a work cookout for 12 people and, knowing the crowd, bumped the party planner's appetite setting from standard to hearty before pricing anything out — figured that'd add a pound or two of brisket to the shopping list, nothing dramatic. The raw weight jumped from about 12 lb to over 16 lb, a swing bigger than I'd budgeted for. Curious whether dropping to light for a lighter-eating group would save roughly the same amount in the other direction, I toggled it — and it didn't. Light only pulled the number down by 30%. Hearty had pushed it up by 35%. The dial isn't centered on standard the way its middle position makes it look.

@@ -3,6 +3,8 @@ title: "Why Your Turkey Never Stalls (and the Math Isn't Like Brisket At All)"
 description: "A whole turkey climbs almost like a straight line, no plateau in sight. The geometry that explains it also explains why pulling the whole bird at one number is the wrong move."
 pubDate: '2026-07-27'
 heroImage: '/blog/turkey-doesnt-stall.jpg'
+pillar: science
+protein: [turkey]
 ---
 
 First turkey I ever smoked, I sat out by the cooker with a beer, waiting for the stall. By that point I'd run enough brisket cooks to know the rhythm — climb, climb, climb, then that long flat stretch in the 150s where you start tapping the thermometer and wondering if the battery died. So I budgeted for it. Blocked out extra time, told my in-laws dinner might slide an hour.

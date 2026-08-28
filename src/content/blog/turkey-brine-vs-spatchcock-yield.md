@@ -3,6 +3,8 @@ title: "Brine or Spatchcock? They Pull Turkey Yield in Opposite Directions"
 description: "Brining and spatchcocking both make for a better turkey, but our yield model shows they win in different ledger lines — one cuts cook loss, the other adds a trim cost. The math on which actually leaves more meat on the platter."
 pubDate: '2026-08-04'
 heroImage: '/blog/turkey-brine-vs-spatchcock-yield.jpg'
+pillar: myth-bust
+protein: [turkey]
 ---
 
 Two Thanksgivings, two birds, same 14-lb weight on the tag. One year I brined a whole turkey overnight. The next, I spatchcocked one dry and roasted it flat because I'd read it cooks faster and more evenly. Both came out good. What I didn't do, either year, was ask which one actually put more carved meat on the platter for the same raw pounds bought — I just assumed "better technique" meant "better yield." It doesn't, not automatically, and the two techniques don't even help for the same reason.

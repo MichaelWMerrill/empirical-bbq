@@ -3,6 +3,8 @@ title: "Bigger Brisket, Proportionally Longer Stall? The Math Says No"
 description: "Doubling a brisket's weight roughly doubles the climb to the stall — but barely touches how long the stall itself lasts. Two separate mass exponents explain why the plateau doesn't scale like the rest of the cook."
 pubDate: '2026-08-05'
 heroImage: '/blog/brisket-mass-exponents.jpg'
+pillar: science
+protein: [beef_brisket]
 ---
 
 Bought a 16 lb packer for a bigger crowd than usual, and did the lazy math: my usual 8-pounder runs about a 3 hour stall, so budget double that, call it 6. I blocked out the extra time, told everyone dinner was later, and then sat there watching the plateau break almost exactly where it always does. The stall barely moved. The part that *did* nearly double was the long climb to get there. I'd scaled the wrong half of the cook.

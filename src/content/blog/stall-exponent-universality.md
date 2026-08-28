@@ -3,6 +3,8 @@ title: "Brisket and Pork Shoulder Share the Exact Same Stall-Duration Exponent"
 description: "Two different animals, two different climb-rate exponents, two different geometric constants — and one mass-scaling number that matches to three decimal places. It's not a coincidence, and the constant that looks like it should explain the difference turns out to be decorative."
 pubDate: '2026-08-19'
 heroImage: '/blog/stall-exponent-universality.jpg'
+pillar: science
+protein: [beef_brisket, pork_shoulder]
 ---
 
 Went digging through the registry comparing a brisket cook to a pork butt cook, expecting the usual story — different cut, different shape, different numbers throughout. Climb-rate exponents: different. Geometric constants: different. Then I got to the number that scales how long the stall itself lasts, and brisket and pork shoulder had the exact same value, out to three decimal places. Two species, two shapes, two completely separate calibration efforts — landing on the identical number for one specific thing. That's not the kind of coincidence you get from independently fitting curves to field data.

@@ -3,6 +3,8 @@ title: "Ribs Run on Two Different Clocks, and We Never Reconciled Them"
 description: "Our own rib scheduler and rib predictor disagree with each other by design — a fixed 3-2-1 block schedule versus a slab-geometry physics model. Here's why, and which one to trust."
 pubDate: '2026-08-04'
 heroImage: '/blog/ribs-two-clocks.jpg'
+pillar: science
+protein: [pork_ribs]
 ---
 
 I had two tabs open planning a rib cook — our cook scheduler in one, the rib stall predictor in the other, both set to the same spare ribs at 250°F. The scheduler said 6 hours, flat, no matter what I touched. The predictor gave me a curve that shifted a little with wrap and climate. They weren't telling the same story, and for a minute I assumed one of them was just wrong.

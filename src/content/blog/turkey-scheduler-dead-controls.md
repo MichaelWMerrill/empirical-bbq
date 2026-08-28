@@ -3,6 +3,8 @@ title: "The Cook Scheduler Shows Turkey Controls That Do Nothing"
 description: "Dragged the climate toggle and swapped wrap types building a Thanksgiving schedule, and the fire-up time never moved a minute. Turkey clears the wrong gate in the scheduler's UI logic — its own stall model never reads either control."
 pubDate: '2026-08-23'
 heroImage: '/blog/turkey-scheduler-dead-controls.jpg'
+pillar: myth-bust
+protein: [turkey]
 ---
 
 Building a Thanksgiving schedule on the cook scheduler, I dragged the Regional Climate toggle from moderate to arid, expecting the fire-up time to nudge earlier — arid air deepens and lengthens the brisket stall, so a drier forecast should push the whole schedule out. Turkey's fire-up time didn't move by a minute. Figured I'd fat-fingered it, tried Wrap Type next, foil to no-wrap: same result, identical schedule down to the second. Wrap and climate weren't being ignored a little. They weren't being read at all.

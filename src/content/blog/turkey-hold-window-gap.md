@@ -3,6 +3,8 @@ title: "Turkey's Hold Window Is a Fraction of Brisket's — Same Cooler, Same Ma
 description: "I planned a turkey hold the way I plan a brisket hold and nearly served a bird that had drifted into the danger zone at the table. The same cooling formula, the same cooler, and a pull temperature 40+ degrees lower changes everything."
 pubDate: '2026-08-19'
 heroImage: '/blog/turkey-hold-window-gap.jpg'
+pillar: planning-safety
+protein: [turkey]
 ---
 
 Pulled a turkey at 160°F an hour before guests showed up, wrapped it the exact same way I wrap a brisket — foil, towels, into a pre-warmed cooler — and figured I had my usual cushion if dinner ran late. Dinner ran late. Went to carve and the breast had dropped further than felt right for "an hour in a faux cambro." Checked it against a thermometer instead of trusting the clock, and it had already slid close to the floor I didn't think I'd have to worry about for hours yet. Same cooler, same wrap, same technique that buys a brisket most of an afternoon — and it very nearly wasn't enough for a bird that had barely rested.
