@@ -9,6 +9,34 @@ const posts = (await getCollection('blog')).sort(
 
 const fmtDate = (d) =>
   d ? new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' }) : '';
+
+// Display labels for the schema's `pillar` enum (src/content.config.ts), in the
+// order filter chips should render.
+const PILLARS = [
+  ['science', 'Science'],
+  ['myth-bust', 'Myth Bust'],
+  ['how-to', 'How-To'],
+  ['planning-safety', 'Planning & Safety'],
+  ['tool-spotlight', 'Tool Spotlight'],
+];
+
+// Display labels for the schema's `protein` enum. Not sourced from
+// src/utils/proteinRegistry.js — that registry only covers real proteins used
+// by the calculators, while blog posts also carry the cross-cutting `general` tag.
+const PROTEINS = [
+  ['beef_brisket', 'Brisket'],
+  ['pork_shoulder', 'Pork Shoulder'],
+  ['pork_ribs', 'Ribs'],
+  ['turkey', 'Turkey'],
+  ['general', 'General'],
+];
+const PROTEIN_LABEL = Object.fromEntries(PROTEINS);
+
+// Only show a filter chip for a tag that at least one post actually has.
+const usedPillars = new Set(posts.map((p) => p.data.pillar));
+const usedProteins = new Set(posts.flatMap((p) => p.data.protein));
+const pillarChips = PILLARS.filter(([id]) => usedPillars.has(id));
+const proteinChips = PROTEINS.filter(([id]) => usedProteins.has(id));
 ---
 
 <Layout
@@ -39,38 +67,83 @@ const fmtDate = (d) =>
           posts.length === 0 ? (
             <p class="text-center text-base-500 py-16">No posts yet — check back soon.</p>
           ) : (
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {posts.map((post) => (
-                <a
-                  href={`/blog/${post.id}`}
-                  class="group flex flex-col rounded-2xl bg-base-800/80 ring-1 ring-base-700 overflow-hidden shadow-xl shadow-black/40 hover:-translate-y-1 hover:shadow-2xl hover:ring-flame-500/40 transition-all duration-300"
-                >
-                  {post.data.heroImage && (
-                    <div class="aspect-[16/9] overflow-hidden bg-base-900">
-                      <img
-                        src={post.data.heroImage}
-                        alt={post.data.title}
-                        loading="lazy"
-                        class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
+            <>
+              <div class="mb-8 flex flex-col gap-3" id="blogFilters">
+                <div class="flex flex-wrap items-center gap-2" role="tablist" aria-label="Filter by pillar">
+                  <span class="text-[11px] font-semibold uppercase tracking-widest text-base-500 mr-1">Topic</span>
+                  <button type="button" data-filter-pillar="all" class="filter-chip is-active px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors" role="tab" aria-selected="true">
+                    All
+                  </button>
+                  {pillarChips.map(([id, label]) => (
+                    <button type="button" data-filter-pillar={id} class="filter-chip px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors" role="tab" aria-selected="false">
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <div class="flex flex-wrap items-center gap-2" role="tablist" aria-label="Filter by protein">
+                  <span class="text-[11px] font-semibold uppercase tracking-widest text-base-500 mr-1">Protein</span>
+                  <button type="button" data-filter-protein="all" class="filter-chip is-active px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors" role="tab" aria-selected="true">
+                    All
+                  </button>
+                  {proteinChips.map(([id, label]) => (
+                    <button type="button" data-filter-protein={id} class="filter-chip px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors" role="tab" aria-selected="false">
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <p id="blogEmptyState" class="hidden text-center text-base-500 py-16">
+                No posts match that filter combination — try widening it.
+              </p>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="blogGrid">
+                {posts.map((post) => (
+                  <a
+                    href={`/blog/${post.id}`}
+                    data-pillar={post.data.pillar}
+                    data-protein={post.data.protein.join(',')}
+                    class="blog-card group flex flex-col rounded-2xl bg-base-800/80 ring-1 ring-base-700 overflow-hidden shadow-xl shadow-black/40 hover:-translate-y-1 hover:shadow-2xl hover:ring-flame-500/40 transition-all duration-300"
+                  >
+                    {post.data.heroImage && (
+                      <div class="aspect-[16/9] overflow-hidden bg-base-900">
+                        <img
+                          src={post.data.heroImage}
+                          alt={post.data.title}
+                          loading="lazy"
+                          class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      </div>
+                    )}
+                    <div class="flex flex-1 flex-col p-6">
+                      <div class="flex items-center justify-between gap-2">
+                        <p class="text-[11px] font-mono uppercase tracking-wider text-base-500">{fmtDate(post.data.pubDate)}</p>
+                        <span class="shrink-0 rounded-full bg-flame-500/10 ring-1 ring-flame-500/40 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-flame-300">
+                          {PILLARS.find(([id]) => id === post.data.pillar)?.[1] ?? post.data.pillar}
+                        </span>
+                      </div>
+                      <h2 class="mt-2 text-lg font-bold text-white leading-snug group-hover:text-flame-300 transition-colors">
+                        {post.data.title}
+                      </h2>
+                      <p class="mt-2 text-sm text-base-400 leading-relaxed flex-1">{post.data.description}</p>
+                      <div class="mt-4 flex flex-wrap gap-1.5">
+                        {post.data.protein.map((p) => (
+                          <span class="rounded-full bg-base-700/60 ring-1 ring-base-600 px-2 py-0.5 text-[10px] font-medium text-base-400">
+                            {PROTEIN_LABEL[p] ?? p}
+                          </span>
+                        ))}
+                      </div>
+                      <span class="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-flame-400 group-hover:text-flame-300">
+                        Read article
+                        <svg class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                      </span>
                     </div>
-                  )}
-                  <div class="flex flex-1 flex-col p-6">
-                    <p class="text-[11px] font-mono uppercase tracking-wider text-base-500">{fmtDate(post.data.pubDate)}</p>
-                    <h2 class="mt-2 text-lg font-bold text-white leading-snug group-hover:text-flame-300 transition-colors">
-                      {post.data.title}
-                    </h2>
-                    <p class="mt-2 text-sm text-base-400 leading-relaxed flex-1">{post.data.description}</p>
-                    <span class="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-flame-400 group-hover:text-flame-300">
-                      Read article
-                      <svg class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </svg>
-                    </span>
-                  </div>
-                </a>
-              ))}
-            </div>
+                  </a>
+                ))}
+              </div>
+            </>
           )
         }
       </main>
@@ -100,6 +173,54 @@ const fmtDate = (d) =>
       </div>
     </div>
   </footer>
+
+  {
+    posts.length > 0 && (
+      <script is:inline>
+        (function () {
+          var grid = document.getElementById('blogGrid');
+          if (!grid) return;
+          var cards = grid.querySelectorAll('[data-pillar]');
+          var emptyState = document.getElementById('blogEmptyState');
+          var pillarButtons = document.querySelectorAll('[data-filter-pillar]');
+          var proteinButtons = document.querySelectorAll('[data-filter-protein]');
+          var activePillar = 'all';
+          var activeProtein = 'all';
+
+          function applyFilters() {
+            var visible = 0;
+            cards.forEach(function (card) {
+              var pillarMatch = activePillar === 'all' || card.dataset.pillar === activePillar;
+              var proteins = card.dataset.protein.split(',');
+              var proteinMatch = activeProtein === 'all' || proteins.indexOf(activeProtein) !== -1;
+              var show = pillarMatch && proteinMatch;
+              card.classList.toggle('hidden', !show);
+              if (show) visible++;
+            });
+            if (emptyState) emptyState.classList.toggle('hidden', visible !== 0);
+          }
+
+          function wireGroup(buttons, onSelect) {
+            buttons.forEach(function (btn) {
+              btn.addEventListener('click', function () {
+                buttons.forEach(function (b) {
+                  b.classList.remove('is-active');
+                  b.setAttribute('aria-selected', 'false');
+                });
+                btn.classList.add('is-active');
+                btn.setAttribute('aria-selected', 'true');
+                onSelect(btn.dataset.filterPillar || btn.dataset.filterProtein);
+                applyFilters();
+              });
+            });
+          }
+
+          wireGroup(pillarButtons, function (v) { activePillar = v; });
+          wireGroup(proteinButtons, function (v) { activeProtein = v; });
+        })();
+      </script>
+    )
+  }
 </Layout>
 
 <style is:global>
@@ -112,5 +233,19 @@ const fmtDate = (d) =>
     background:
       radial-gradient(1200px 600px at 82% -12%, rgba(249, 115, 22, 0.14), transparent 60%),
       radial-gradient(950px 520px at -8% 108%, rgba(245, 158, 11, 0.09), transparent 55%);
+  }
+
+  body.page-blog .filter-chip {
+    background: rgba(30, 41, 59, 0.5);
+    color: rgba(203, 213, 225, 0.6);
+    border-color: rgba(51, 65, 85, 0.8);
+  }
+  body.page-blog .filter-chip:hover {
+    color: #fff;
+  }
+  body.page-blog .filter-chip.is-active {
+    background: #f97316;
+    color: #fff;
+    border-color: #f97316;
   }
 </style>
