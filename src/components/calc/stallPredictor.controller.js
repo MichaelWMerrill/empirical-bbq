@@ -255,8 +255,10 @@ export function initStallPredictor(protein = PROTEINS.beef_brisket) {
   }
 
   /* Render everything */
+  let lastModel = null;
   function render() {
     const m = computeModel(state, protein);
+    lastModel = m;
     const pts = buildPath(m);
     renderChart(m, pts);
 
@@ -519,5 +521,9 @@ export function initStallPredictor(protein = PROTEINS.beef_brisket) {
   }
 
   init();
-  return { state, render };
+  // getPredictedCookMinutes() exposes the ALREADY-COMPUTED prediction (from the
+  // most recent render()) for the cook-log capture UI to read — it must never
+  // recompute the model itself, since the logged prediction has to be exactly
+  // what the user saw on screen when they started the cook.
+  return { state, render, getPredictedCookMinutes: () => (lastModel ? Math.round(lastModel.totalTime * 60) : null) };
 }
