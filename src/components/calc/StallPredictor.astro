@@ -10,6 +10,7 @@ import { PROTEINS } from '../../utils/proteinRegistry.js';
 import { ENGINE_VERSION } from '../../utils/version.js';
 import ProteinSelector from './ProteinSelector.astro';
 import GearModule from './GearModule.astro';
+import CookLogCapture from './CookLogCapture.astro';
 
 export interface Props {
   protein?: (typeof PROTEINS)[keyof typeof PROTEINS];
@@ -215,6 +216,8 @@ const heading = protein.meta.id === 'beef_brisket' ? 'Stall Predictor' : `${prot
         </div>
       </div>
 
+      <CookLogCapture />
+
       <GearModule tool="stall" state={{ protein: protein.meta.id, cut: tInit.cut, pit: 'offset_smoker' }} />
     </section>
   </div>
@@ -288,9 +291,12 @@ const heading = protein.meta.id === 'beef_brisket' ? 'Stall Predictor' : `${prot
 
 <script>
   import { initStallPredictor } from './stallPredictor.controller.js';
+  import { initCookLogCapture } from './cookLogCapture.controller.js';
   import { PROTEINS } from '../../utils/proteinRegistry.js';
   document.addEventListener('DOMContentLoaded', () => {
     const id = document.querySelector('[data-stall-protein]')?.dataset.stallProtein || 'beef_brisket';
-    initStallPredictor(PROTEINS[id] || PROTEINS.beef_brisket);
+    const protein = PROTEINS[id] || PROTEINS.beef_brisket;
+    initStallPredictor(protein);
+    initCookLogCapture(protein.meta.id);
   });
 </script>

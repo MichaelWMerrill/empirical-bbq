@@ -1,0 +1,45 @@
+---
+/*
+ * Cook-log capture UI. Included once inside StallPredictor.astro (shared
+ * across all four protein stall pages). All the state-machine logic
+ * (consent -> start -> checkpoints) lives in ./cookLogCapture.controller.js;
+ * this file is just the markup for each mutually-exclusive panel.
+ *
+ * Consent copy below is a DRAFT — flagged in the PR description as pending
+ * Mike's final wording before this ships broadly.
+ */
+---
+
+<div class="rounded-2xl bg-slate-900 ring-1 ring-slate-800 shadow-xl shadow-black/40 p-5 sm:p-6 space-y-4" data-cook-log-capture>
+  <div class="flex items-center gap-2">
+    <span class="text-xl" aria-hidden="true">📊</span>
+    <h3 class="text-sm font-semibold text-white">Cook Log</h3>
+    <span class="text-[10px] font-mono uppercase tracking-widest text-slate-600">Beta</span>
+  </div>
+
+  <!-- Consent: undecided -->
+  <div id="cookLogConsentPrompt" hidden class="space-y-3">
+    <p class="text-[12px] text-slate-400 leading-relaxed">
+      Help improve this model: opt in to log this cook's weight, timeline, and predicted vs.
+      actual cook time. Anonymous beyond altitude — no name, email, or precise location, just a
+      random id stored on this device. Used only for a periodic, human-reviewed check on whether
+      these models need retuning.
+    </p>
+    <div class="flex gap-2">
+      <button id="cookLogOptIn" type="button" class="rounded-lg bg-amber-500 hover:bg-amber-400 text-base-900 font-bold text-xs px-4 py-2 transition-colors">
+        Opt in
+      </button>
+      <button id="cookLogOptOut" type="button" class="rounded-lg bg-slate-800 ring-1 ring-slate-700 hover:ring-slate-600 text-slate-300 hover:text-white font-semibold text-xs px-4 py-2 transition-all">
+        No thanks
+      </button>
+    </div>
+  </div>
+
+  <!-- Consent: denied — a single small, non-nagging way back in -->
+  <p id="cookLogDeniedLink" hidden class="text-[12px] text-slate-500">
+    Cook logging is off.
+    <button id="cookLogEnableLink" type="button" class="text-amber-400 hover:text-amber-300 underline underline-offset-2">Turn it on</button>
+  </p>
+
+  <p id="cookLogStatus" class="text-[11px] text-slate-500 min-h-[1em]" aria-live="polite"></p>
+</div>
