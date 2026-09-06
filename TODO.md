@@ -74,15 +74,33 @@ After the extensionless-canonical migration deploys, do these by hand:
 - [ ] 8. Live Cook Mode / PWA (L) — log actual probe temps against the
       predicted curve mid-cook; recalibrate finish estimate in real time.
       Turns a one-shot visit into a 12-hour session.
+      **Installable shell shipped** (PR #62): a registered Service Worker
+      (see README "PWA shell") makes the site installable. Kept
+      deliberately online-first per the constraint noted below — it caches
+      only content-hashed JS/CSS, never HTML or `/api/*`, so it cannot
+      suppress ad impressions or serve stale pages. Real-time probe-temp
+      logging against the predicted curve is not built; the cook log
+      capture UI (below) logs discrete checkpoints, not a continuous
+      stream.
 - [ ] 9. Community calibration loop (L) — structured "log your cook" form;
       aggregate real-cook data to tune engine constants. Moat + marketing
       ("model tuned on N real cooks").
-      **Data layer shipped** (PR #61): isolated `cook-log-service` Worker +
-      D1 `cook_sessions` table + `scripts/cook-log-report.mjs` ad hoc
-      aggregation (see README "Cook log data layer"). Still open: the
-      on-device capture UI/form itself, deploying the D1 database and
-      wiring a public route, and the manual, human-approved recalibration
-      step this is explicitly not automated into.
+      **Data layer shipped** (PR #61, merged): isolated `cook-log-service`
+      Worker + D1 `cook_sessions` table + `scripts/cook-log-report.mjs` ad
+      hoc aggregation (see README "Cook log data layer").
+      **Capture UI shipped** (PR #62, open): consent, start-a-cook,
+      in-progress checkpoints, and an offline queue with Background Sync
+      (see README "Cook log capture UI"). A security review and a
+      revenue/bundle-weight pass both ran against it — the UI is
+      lazy-loaded (dynamic `import()` on scroll-approach) after the
+      capture module was found adding a >60% JS-bundle increase to the
+      stall pages when bundled eagerly. Still open: deploying the D1
+      database and wiring a public route (data layer was merged as code,
+      not live infrastructure), a manual QA pass on a real device (the
+      PR's own checklist — Background Sync's actual timing isn't testable
+      deterministically under browser automation), final consent copy,
+      and the manual, human-approved recalibration step this is
+      explicitly not automated into.
 - [ ] 10. Embeddable calculator widgets (L) — iframe/script embeds for BBQ
       blogs; every embed is a branded backlink.
 - [x] 11. Contextual affiliate expansion (S) — per-calculator gear modules
@@ -97,11 +115,15 @@ After the extensionless-canonical migration deploys, do these by hand:
 
 ## Deferred — planned, not yet implemented
 - [ ] Astro 7 upgrade — planned, tested separately (see README).
-- [ ] Live Cook Mode PWA (= #8 above) — keep it online-first when built;
-      offline caching would suppress ad impressions.
-- [ ] Community calibration loop (= #9 above) — data layer shipped (PR #61,
-      see README "Cook log data layer"); capture UI and recalibration still
+- [ ] Live Cook Mode PWA (= #8 above) — installable shell shipped (PR #62,
+      see README "PWA shell"), kept online-first as required: caches only
+      hashed JS/CSS, never HTML or `/api/*`, so offline caching can't
+      suppress ad impressions. Full mid-cook probe-temp logging still
       pending.
+- [ ] Community calibration loop (= #9 above) — data layer shipped (PR #61,
+      merged) and capture UI shipped (PR #62, open) — see README "Cook log
+      data layer" and "Cook log capture UI". Recalibration itself, D1
+      deployment, and the manual QA checklist on PR #62 still pending.
 - [ ] Email capture / ESP integration (= #6 above).
 - [x] CSP enforce-mode flip — done: `public/_headers` now sends
       `Content-Security-Policy` (was `-Report-Only`), same validated allowlist.
