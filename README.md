@@ -177,13 +177,16 @@ per-protein calculator data), not reinvented in the Worker.
 
 - [x] D1 database created (`cook-log-db`) and the migration applied — `wrangler.jsonc`'s
       `database_id` is the real one, not a placeholder.
-- [ ] The Worker itself deployed (`npx wrangler deploy` from `workers/cook-log-service/`).
-- [ ] A public route or custom domain attached in the Cloudflare dashboard so
-      `empiricalbbq.com/api/cook-logs*` actually reaches it — not in-repo config for
-      `pitmaster-command-center` either, so this is a dashboard step, not a code change.
+- [x] The route declared as code — `wrangler.jsonc`'s `routes` block scopes a Route (not a
+      Custom Domain) to `empiricalbbq.com/api/cook-logs*`, so `wrangler deploy` provisions it
+      automatically. A Route always takes precedence over a Custom Domain for the paths it
+      matches, so this coexists with however `pitmaster-command-center` serves the rest of the
+      zone without touching it.
+- [ ] The Worker itself deployed — this is the one remaining step:
 
 ```bash
 cd workers/cook-log-service
+npx wrangler login   # one-time browser OAuth, only needed once per machine
 npx wrangler deploy
 ```
 

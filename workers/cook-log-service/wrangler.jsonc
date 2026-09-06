@@ -4,12 +4,19 @@
   "compatibility_date": "2026-07-11",
   "compatibility_flags": ["nodejs_compat"],
   // Isolated data-layer Worker for anonymized cook logging. Separate from
-  // `pitmaster-command-center` (the main site Worker) — no assets binding,
-  // no shared routes; this Worker only ever answers /api/cook-logs*.
+  // `pitmaster-command-center` (the main site Worker) — no assets binding;
+  // this Worker only ever answers /api/cook-logs*.
   "main": "worker.ts",
   "observability": {
     "enabled": true
   },
+  // A Route (not a Custom Domain) scoped to just this path prefix.
+  // pitmaster-command-center serves the rest of empiricalbbq.com (almost
+  // certainly via a Custom Domain, where the Worker IS the origin for the
+  // whole host) — a Route always takes precedence over a Custom Domain for
+  // the paths it matches, so this coexists without touching anything else
+  // on the zone. `wrangler deploy` provisions the route automatically.
+  "routes": [{ "pattern": "empiricalbbq.com/api/cook-logs*", "zone_name": "empiricalbbq.com" }],
   "d1_databases": [
     {
       "binding": "DB",
