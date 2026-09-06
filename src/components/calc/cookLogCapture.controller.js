@@ -15,7 +15,10 @@
  */
 import '../../../public/sw-queue-utils.js';
 import { getConsentState, setConsent, getOrCreateAnonClientId, getAnonClientId } from '../../utils/cookLogConsent.js';
-import { postCookLog } from '../../utils/cookLogClient.js';
+import { postCookLog, patchCookLog } from '../../utils/cookLogClient.js';
+
+// Calculator wrap enum -> cook-log wrap_method enum, used when marking wrapped.
+const CALC_WRAP_TO_LOG = { none: 'unwrapped', peach_butcher_paper: 'butcher_paper', aluminum_foil: 'foil' };
 
 // Calculator enum -> cook-log enum. Only used to seed sensible defaults in
 // the collapsed "optional details" section — never auto-submitted without
@@ -33,6 +36,7 @@ export function initCookLogCapture(proteinTypeId, modelVersion, stallControls) {
     consent: $('cookLogConsentPrompt'),
     denied: $('cookLogDeniedLink'),
     start: $('cookLogStartForm'),
+    active: $('cookLogCheckpoints'),
   };
   if (!panels.consent) return; // component not present on this page
 
@@ -54,9 +58,8 @@ export function initCookLogCapture(proteinTypeId, modelVersion, stallControls) {
 
     const activeCook = await globalThis.SWQueueUtils.getActiveCook();
     if (activeCook) {
-      // Checkpoint UI for an in-progress cook lands in the next commit —
-      // for now, just don't re-show the start form over an active cook.
-      showOnly(null);
+      showOnly('active');
+      renderActiveCook(activeCook);
     } else {
       showOnly('start');
     }
@@ -119,6 +122,58 @@ export function initCookLogCapture(proteinTypeId, modelVersion, stallControls) {
       return;
     }
     await globalThis.SWQueueUtils.setActiveCook({ id: result.data.id, proteinType: proteinTypeId, startedAt: payload.start_time });
+    setStatus('');
+    refresh();
+  });
+
+  /* ---------- In-progress checkpoints ---------- */
+  function renderActiveCook(cook) {
+    const label = $('cookLogActiveLabel');
+    if (label) label.textContent = cook.proteinType === proteinTypeId ? 'Tracking this cook' : `Tracking a ${cook.proteinType.replace('_', ' ')} cook`;
+    const finishSection = $('cookLogFinishSection');
+    if (finishSection) finishSection.hidden = !!cook.finishedAt;
+    const restSection = $('cookLogRestSection');
+    if (restSection) restSection.hidden = !cook.finishedAt;
+  }
+
+  async function patchActiveCook(fields, statusMessage) {
+    const cook = await globalThis.SWQueueUtils.getActiveCook();
+    if (!cook) return;
+    setStatus(statusMessage ? statusMessage + '…' : 'Saving…');
+    const result = await patchCookLog(cook.id, fields);
+    setStatus(result.ok ? '' : 'Could not save (please try again).');
+    if (result.ok) {
+      await globalThis.SWQueueUtils.setActiveCook({ ...cook, ...fields, finishedAt: fields.finish_time ? true : cook.finishedAt });
+      refresh();
+    }
+  }
+
+  $('cookLogMarkWrapped')?.addEventListener('click', () => {
+    patchActiveCook(
+      { wrap_time: new Date().toISOString(), wrap_method: CALC_WRAP_TO_LOG[stallControls.state.wrap] || 'unwrapped' },
+      'Marking wrapped',
+    );
+  });
+  $('cookLogMarkStallStart')?.addEventListener('click', () => {
+    patchActiveCook({ stall_start_time: new Date().toISOString() }, 'Marking stall start');
+  });
+  $('cookLogMarkStallEnd')?.addEventListener('click', () => {
+    patchActiveCook({ stall_end_time: new Date().toISOString() }, 'Marking stall end');
+  });
+  $('cookLogFinishForm')?.addEventListener('submit', (evt) => {
+    evt.preventDefault();
+    const temp = parseInt($('cookLogFinalTemp').value, 10);
+    if (!Number.isFinite(temp)) return;
+    patchActiveCook({ finish_time: new Date().toISOString(), final_internal_temp_f: temp }, 'Marking finished');
+  });
+  $('cookLogRestForm')?.addEventListener('submit', (evt) => {
+    evt.preventDefault();
+    const minutes = parseInt($('cookLogRestMinutes').value, 10);
+    if (!Number.isFinite(minutes)) return;
+    patchActiveCook({ rest_minutes: minutes }, 'Marking rested');
+  });
+  $('cookLogDoneTracking')?.addEventListener('click', async () => {
+    await globalThis.SWQueueUtils.clearActiveCook();
     setStatus('');
     refresh();
   });
