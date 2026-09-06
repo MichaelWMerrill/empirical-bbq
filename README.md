@@ -169,9 +169,13 @@ script below). The on-device capture UI that calls it is covered separately belo
 **Data model**: `cook_sessions` in D1 (see `workers/cook-log-service/migrations/0001_create_cook_sessions.sql`).
 No name, email, or precise location is ever collected — `anon_client_id` is a client-generated
 `crypto.randomUUID()` stored in the PWA's local storage, never tied to an account or device
-identifier. Weight bounds used for validation are read directly from
-`PROTEINS[...].thermal.geometry.weight_bounds` in `src/utils/proteinRegistry.js` (the same
-per-protein calculator data), not reinvented in the Worker.
+identifier. Weight bounds used for validation live in `workers/cook-log-service/server/weightBounds.ts`
+— a deliberately kept-honest duplicate of `PROTEINS[...].thermal.geometry.weight_bounds` in
+`src/utils/proteinRegistry.js`, not a direct import, because this Worker's Cloudflare Workers
+Builds project is scoped to `workers/cook-log-service/` as its Root Directory (a monorepo
+sub-project build — see [Workers Builds monorepo docs](https://developers.cloudflare.com/workers/ci-cd/builds/advanced-setups/#monorepos)),
+so a build there can't see anything outside that directory. `weightBoundsSync.spec.ts` runs
+from a full checkout and fails if the two ever drift apart.
 
 **Deploying**:
 
