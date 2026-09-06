@@ -88,15 +88,20 @@ After the extensionless-canonical migration deploys, do these by hand:
       **Data layer shipped** (PR #61, merged): isolated `cook-log-service`
       Worker + D1 `cook_sessions` table + `scripts/cook-log-report.mjs` ad
       hoc aggregation (see README "Cook log data layer").
-      **Capture UI shipped** (PR #62, open): consent, start-a-cook,
+      **Capture UI shipped** (PR #62, merged): consent, start-a-cook,
       in-progress checkpoints, and an offline queue with Background Sync
       (see README "Cook log capture UI"). A security review and a
       revenue/bundle-weight pass both ran against it — the UI is
       lazy-loaded (dynamic `import()` on scroll-approach) after the
       capture module was found adding a >60% JS-bundle increase to the
-      stall pages when bundled eagerly. Still open: deploying the D1
-      database and wiring a public route (data layer was merged as code,
-      not live infrastructure), a manual QA pass on a real device (the
+      stall pages when bundled eagerly.
+      **D1 database created and migrated** (2026-09-06): `cook-log-db` is
+      live with the `cook_sessions` schema; `wrangler.jsonc`'s
+      `database_id` is real, not a placeholder. Still open: deploying the
+      Worker itself (`wrangler deploy`) and wiring a public route in the
+      Cloudflare dashboard so `empiricalbbq.com/api/cook-logs*` actually
+      reaches it — until both are done the capture UI has nowhere to send
+      its writes. Also still open: a manual QA pass on a real device (the
       PR's own checklist — Background Sync's actual timing isn't testable
       deterministically under browser automation), final consent copy,
       and the manual, human-approved recalibration step this is
@@ -120,10 +125,11 @@ After the extensionless-canonical migration deploys, do these by hand:
       hashed JS/CSS, never HTML or `/api/*`, so offline caching can't
       suppress ad impressions. Full mid-cook probe-temp logging still
       pending.
-- [ ] Community calibration loop (= #9 above) — data layer shipped (PR #61,
-      merged) and capture UI shipped (PR #62, open) — see README "Cook log
-      data layer" and "Cook log capture UI". Recalibration itself, D1
-      deployment, and the manual QA checklist on PR #62 still pending.
+- [ ] Community calibration loop (= #9 above) — data layer and capture UI
+      both merged (PR #61, PR #62) — see README "Cook log data layer" and
+      "Cook log capture UI". D1 database created and migrated
+      (2026-09-06); the Worker deploy, route wiring, the manual QA
+      checklist on PR #62, and recalibration itself still pending.
 - [ ] Email capture / ESP integration (= #6 above).
 - [x] CSP enforce-mode flip — done: `public/_headers` now sends
       `Content-Security-Policy` (was `-Report-Only`), same validated allowlist.
