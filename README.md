@@ -186,16 +186,26 @@ from a full checkout and fails if the two ever drift apart.
       automatically. A Route always takes precedence over a Custom Domain for the paths it
       matches, so this coexists with however `pitmaster-command-center` serves the rest of the
       zone without touching it.
-- [ ] The Worker itself deployed — this is the one remaining step:
+- [x] The Worker deployed and **live in production** (2026-09-06). Cloudflare's git-integrated
+      Workers Build auto-deploys `cook-log-service` on every push to `main` — no manual
+      `wrangler deploy` needed going forward. Getting here took two fixes, both merged:
+      - **PR #65**: the first real build failed — `server/validation.ts` imported
+        `PROTEINS` from `../../../src/utils/proteinRegistry.js`, which resolves locally but
+        not in Cloudflare's monorepo-scoped build (Root Directory = `workers/cook-log-service/`,
+        so the build checkout never sees `../../../src/`). Fixed by extracting the weight bounds
+        into `server/weightBounds.ts` (see "Data model" above).
+      - A separate, pre-existing **Cloudflare Access application ("All Workers")** was found to
+        be gating the *entire* `empiricalbbq.com` zone behind a Cloudflare login — not just this
+        API. It predated this feature and was unrelated to it; removing it is what let real
+        requests (and this Worker's own traffic) reach the site at all.
+      - **PR #66**: end-to-end testing on the live site surfaced a real client-side bug —
+        every in-progress checkpoint PATCH (wrap/stall/finish/rest, see "Cook log capture UI"
+        below) was missing `anon_client_id`, which `validatePatchBody` requires, so every
+        checkpoint update was silently rejected with 400 even though starting a cook worked
+        fine. Fixed in `cookLogCapture.controller.js`'s `patchActiveCook()`.
 
-```bash
-cd workers/cook-log-service
-npx wrangler login   # one-time browser OAuth, only needed once per machine
-npx wrangler deploy
-```
-
-Until both remaining steps are done, `POST /api/cook-logs` from the live site has nowhere to
-land — the capture UI will show "Could not start tracking."
+      Verified end-to-end in production, not just by tests: create → checkpoint update → D1
+      row, driven from a real device on the live site.
 
 **Aggregation**: `scripts/cook-log-report.mjs` is an ad hoc, human-run script (not wired into
 CI or any build step, and it never writes back to a model constant or golden test) that shells
@@ -216,6 +226,10 @@ Vitest coverage for the Worker lives in `workers/cook-log-service/__tests__/`.
 inside `StallPredictor.astro` — the one component shared by all four protein stall pages
 (`/stall-predictor`, `/pork-shoulder-stall`, `/ribs-stall`, `/turkey-stall`), so one panel
 covers all of them. Calls the `cook-log-service` Worker above; doesn't modify it.
+
+**Live in production** (2026-09-06) — see "Cook log data layer" above for the deploy fixes
+that got it there, including a real bug this surfaced: every checkpoint PATCH was missing
+`anon_client_id` and was being silently rejected (fixed in PR #66).
 
 - **Consent**: off by default, shown once. `anon_client_id` (`src/utils/cookLogConsent.js`) is
   a `crypto.randomUUID()` generated only on opt-in and wiped on opt-out — never tied to an
