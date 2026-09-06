@@ -77,6 +77,12 @@ After the extensionless-canonical migration deploys, do these by hand:
 - [ ] 9. Community calibration loop (L) — structured "log your cook" form;
       aggregate real-cook data to tune engine constants. Moat + marketing
       ("model tuned on N real cooks").
+      **Data layer shipped** (PR #61): isolated `cook-log-service` Worker +
+      D1 `cook_sessions` table + `scripts/cook-log-report.mjs` ad hoc
+      aggregation (see README "Cook log data layer"). Still open: the
+      on-device capture UI/form itself, deploying the D1 database and
+      wiring a public route, and the manual, human-approved recalibration
+      step this is explicitly not automated into.
 - [ ] 10. Embeddable calculator widgets (L) — iframe/script embeds for BBQ
       blogs; every embed is a branded backlink.
 - [x] 11. Contextual affiliate expansion (S) — per-calculator gear modules
@@ -93,7 +99,9 @@ After the extensionless-canonical migration deploys, do these by hand:
 - [ ] Astro 7 upgrade — planned, tested separately (see README).
 - [ ] Live Cook Mode PWA (= #8 above) — keep it online-first when built;
       offline caching would suppress ad impressions.
-- [ ] Community calibration loop (= #9 above).
+- [ ] Community calibration loop (= #9 above) — data layer shipped (PR #61,
+      see README "Cook log data layer"); capture UI and recalibration still
+      pending.
 - [ ] Email capture / ESP integration (= #6 above).
 - [x] CSP enforce-mode flip — done: `public/_headers` now sends
       `Content-Security-Policy` (was `-Report-Only`), same validated allowlist.
