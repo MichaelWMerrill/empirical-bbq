@@ -66,7 +66,11 @@ src/
                            single source for bylines, /about, and JSON-LD
   content/blog/            Markdown blog posts
 server/contactHandler.ts   Contact-form handler (called by worker.ts)
-scripts/                   Build/generator scripts: sitemap, OG images, golden specs, ads.txt check
+workers/cook-log-service/  Isolated Worker for anonymized cook logging (own
+                           wrangler.jsonc + D1 binding; see "Cook log data
+                           layer" below) — not part of the static site build
+scripts/                   Build/generator scripts: sitemap, OG images, golden specs, ads.txt check,
+                           cook-log-report (ad hoc D1 aggregation)
 public/                    Static assets copied verbatim (favicons, ads.txt, llms.txt, _headers)
 ```
 
@@ -119,6 +123,56 @@ widget and both keys at Cloudflare dashboard → **Turnstile**.
 >
 > MailChannels now requires account setup (their free Workers integration was retired), so
 > **Resend is the recommended path** — set `RESEND_API_KEY` and verify your sending domain.
+
+## Cook log data layer
+
+`workers/cook-log-service/` is a second, fully isolated Cloudflare Worker — separate deploy,
+separate `wrangler.jsonc`, separate D1 database, no shared code or routes with
+`pitmaster-command-center`. It collects anonymized, opt-in cook data (weight, timeline,
+predicted vs. actual cook time) from PWA users. **This is data-layer infrastructure only** —
+it does not include the on-device capture UI (a separate, not-yet-built feature) and it does
+not feed any model recalibration (a manual, human-reviewed step; see the aggregation script
+below).
+
+**Endpoints** (no read/GET endpoint — this is a write-only API; aggregation runs separately):
+
+| Route | Method | Purpose |
+| --- | --- | --- |
+| `/api/cook-logs` | `POST` | Create a session at cook start. Rejects (400) a missing `consented_at`, an unrecognized enum value, or a `weight_lb` outside the protein's range. Rate limited to `MAX_WRITES_PER_DAY` (20) writes/day per `anon_client_id`. |
+| `/api/cook-logs/:id` | `PATCH` | Update a session's progress fields (wrap, stall markers, finish). 404s if `id` doesn't exist or doesn't belong to the requesting `anon_client_id`. |
+
+**Data model**: `cook_sessions` in D1 (see `workers/cook-log-service/migrations/0001_create_cook_sessions.sql`).
+No name, email, or precise location is ever collected — `anon_client_id` is a client-generated
+`crypto.randomUUID()` stored in the PWA's local storage, never tied to an account or device
+identifier. Weight bounds used for validation are read directly from
+`PROTEINS[...].thermal.geometry.weight_bounds` in `src/utils/proteinRegistry.js` (the same
+per-protein calculator data), not reinvented in the Worker.
+
+**Deploying** (not yet done — this repo ships the code, not the live infrastructure):
+
+```bash
+cd workers/cook-log-service
+npx wrangler d1 create cook-log-db   # then paste the returned database_id into wrangler.jsonc
+npx wrangler d1 migrations apply cook-log-db --remote
+npx wrangler deploy
+```
+
+The Worker also needs a public route or custom domain attached in the Cloudflare dashboard
+before the (future) PWA can reach it — that attachment isn't in-repo config for
+`pitmaster-command-center` either, so it's a deploy-time step, not a code change.
+
+**Aggregation**: `scripts/cook-log-report.mjs` is an ad hoc, human-run script (not wired into
+CI or any build step, and it never writes back to a model constant or golden test) that shells
+out to `wrangler d1 execute` and prints, per `protein_type` + `model_version`: session count,
+mean/median predicted vs. actual cook time, and the delta percentage — the numbers to look at
+before deciding whether a calculator model needs recalibration.
+
+```bash
+node scripts/cook-log-report.mjs           # local D1
+node scripts/cook-log-report.mjs --remote  # production D1
+```
+
+Vitest coverage for the Worker lives in `workers/cook-log-service/__tests__/`.
 
 ## Authorship & E-E-A-T
 
