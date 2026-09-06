@@ -126,6 +126,11 @@ describe('CookLogCapture smoke', () => {
     const patchBody = JSON.parse(patchCall[1].body);
     expect(patchBody.wrap_method).toBe('butcher_paper'); // mapped from 'peach_butcher_paper'
     expect(patchCall[1].method).toBe('PATCH');
+    // Regression: the server rejects any PATCH missing anon_client_id (400
+    // "anon_client_id is required."), so every checkpoint update has to send
+    // it — every checkpoint button/form goes through patchActiveCook(), so
+    // this one call site covers all of them.
+    expect(patchBody.anon_client_id).toBe(localStorage.getItem('pitmaster_cook_log_client_id'));
   });
 
   it('marking finished reveals the rest section; "done tracking" returns to the start form', async () => {

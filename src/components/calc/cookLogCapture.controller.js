@@ -165,7 +165,7 @@ export function initCookLogCapture(proteinTypeId, modelVersion, stallControls) {
       return;
     }
     setStatus(statusMessage ? statusMessage + '…' : 'Saving…');
-    const result = await patchCookLog(cook.id, fields);
+    const result = await patchCookLog(cook.id, { ...fields, anon_client_id: getAnonClientId() });
     setStatus(result.queued ? 'Saved — will sync once back online.' : result.ok ? '' : 'Could not save (server rejected the request).');
     if (result.ok || result.queued) {
       await globalThis.SWQueueUtils.setActiveCook({ ...cook, ...fields, finishedAt: fields.finish_time ? true : cook.finishedAt });
