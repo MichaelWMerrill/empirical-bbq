@@ -1,0 +1,22 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "cook-log-service",
+  "compatibility_date": "2026-07-11",
+  "compatibility_flags": ["nodejs_compat"],
+  // Isolated data-layer Worker for anonymized cook logging. Separate from
+  // `pitmaster-command-center` (the main site Worker) — no assets binding,
+  // no shared routes; this Worker only ever answers /api/cook-logs*.
+  "main": "worker.ts",
+  "observability": {
+    "enabled": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cook-log-db",
+      // Placeholder — replace after running:
+      //   wrangler d1 create cook-log-db
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
+    }
+  ]
+}
