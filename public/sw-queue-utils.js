@@ -126,7 +126,13 @@
     return entry.method === 'POST' && entry.url === '/api/cook-logs';
   }
 
-  function createDefaultSendFn() {
+  // `cookStore` defaults to the real IndexedDB-backed functions above, but is
+  // injectable so this reconciliation logic — the exact thing that had two
+  // real bugs during manual testing — can be unit-tested against an
+  // in-memory fake instead of requiring real IndexedDB (unavailable in the
+  // Vitest 'node'/happy-dom environments).
+  function createDefaultSendFn(cookStore) {
+    var store = cookStore || { getActiveCook: getActiveCook, setActiveCook: setActiveCook, clearActiveCook: clearActiveCook };
     return function (entry) {
       return fetch(entry.url, {
         method: entry.method,
@@ -141,16 +147,16 @@
           // server-side: clear the (now-unrecoverable, id-less) local
           // placeholder too, rather than leaving it stuck forever with no
           // way for the UI to know the cook itself never synced.
-          if (isCreateCookRequest(entry)) return clearActiveCook();
+          if (isCreateCookRequest(entry)) return store.clearActiveCook();
           return;
         }
         if (!isCreateCookRequest(entry)) return;
         return res
           .json()
           .then(function (data) {
-            return getActiveCook().then(function (cook) {
+            return store.getActiveCook().then(function (cook) {
               if (cook && cook.id == null && data && data.id) {
-                return setActiveCook(Object.assign({}, cook, { id: data.id }));
+                return store.setActiveCook(Object.assign({}, cook, { id: data.id }));
               }
             });
           })

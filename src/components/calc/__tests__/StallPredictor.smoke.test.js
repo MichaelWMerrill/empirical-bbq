@@ -63,4 +63,27 @@ describe('StallPredictor smoke', () => {
     expect(document.getElementById('totalTime').textContent).not.toBe('—');
     expect(document.getElementById('chart').children.length).toBeGreaterThan(0);
   });
+
+  it('getPredictedCookMinutes reads the last-rendered model instead of recomputing', async () => {
+    await mount();
+    const controls = initStallPredictor();
+
+    // The cook-log capture UI's contract: it must read this value, never
+    // call computeModel itself, so the logged prediction is exactly what
+    // the user saw on screen.
+    const expectedMinutes = Math.round(computeModel.mock.results.at(-1).value.totalTime * 60);
+    expect(controls.getPredictedCookMinutes()).toBe(expectedMinutes);
+
+    const beforeCallCount = computeModel.mock.calls.length;
+    controls.getPredictedCookMinutes();
+    controls.getPredictedCookMinutes();
+    expect(computeModel.mock.calls.length).toBe(beforeCallCount); // did not call computeModel again
+
+    // Driving an input re-renders, and the getter tracks the new prediction.
+    const weight = document.getElementById('weight');
+    weight.value = '18';
+    weight.dispatchEvent(new Event('input'));
+    const newExpectedMinutes = Math.round(computeModel.mock.results.at(-1).value.totalTime * 60);
+    expect(controls.getPredictedCookMinutes()).toBe(newExpectedMinutes);
+  });
 });
