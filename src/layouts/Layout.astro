@@ -268,5 +268,17 @@ const jsonLd = (block) =>
         document.getElementById('consentReject').addEventListener('click', function () { choose('denied'); });
       })();
     </script>
+
+    {/* Installable PWA shell. Registered after the page has finished loading so
+       it can never compete with initial-render resources; a registration
+       failure (unsupported browser, blocked script) is swallowed — the site
+       works identically either way, this is a pure enhancement. */}
+    <script is:inline>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js').catch(function () {});
+        });
+      }
+    </script>
   </body>
 </html>
