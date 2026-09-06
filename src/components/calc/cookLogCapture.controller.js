@@ -4,21 +4,21 @@
  * drives the panel on /stall-predictor, /pork-shoulder-stall, /ribs-stall,
  * and /turkey-stall.
  *
- * State so far: undecided consent -> prompt; denied -> a small re-enable
- * link; granted -> start a cook. In-progress checkpoints land in the next
- * commit, and offline resilience (queue + Background Sync) in the one
- * after that.
+ * State machine (mutually exclusive panels, toggled via [hidden]):
+ *   undecided consent -> consent prompt
+ *   denied consent     -> a single small "enable" link (no repeat nagging)
+ *   granted, no active cook -> "track this cook" start form
+ *   granted, active cook    -> in-progress checkpoints
  *
- * The active-cook record lives in IndexedDB (public/sw-queue-utils.js),
- * not localStorage, because it has to survive the app being closed
- * mid-cook.
+ * The active cook record lives in IndexedDB (public/sw-queue-utils.js),
+ * not localStorage, because it has to survive the app being closed mid-cook
+ * (a plain page reload keeps localStorage too, but IndexedDB is where the
+ * offline queue already lives, and one storage story for "cook is still
+ * happening" data is simpler to reason about than two).
  */
 import '../../../public/sw-queue-utils.js';
-import { getConsentState, setConsent, getOrCreateAnonClientId, getAnonClientId } from '../../utils/cookLogConsent.js';
-import { postCookLog, patchCookLog } from '../../utils/cookLogClient.js';
-
-// Calculator wrap enum -> cook-log wrap_method enum, used when marking wrapped.
-const CALC_WRAP_TO_LOG = { none: 'unwrapped', peach_butcher_paper: 'butcher_paper', aluminum_foil: 'foil' };
+import { hasConsent, getConsentState, setConsent, getAnonClientId } from '../../utils/cookLogConsent.js';
+import { postCookLog, patchCookLog, drainQueueNow } from '../../utils/cookLogClient.js';
 
 // Calculator enum -> cook-log enum. Only used to seed sensible defaults in
 // the collapsed "optional details" section — never auto-submitted without
@@ -29,6 +29,7 @@ const PIT_TO_COOK_METHOD = {
   ceramic_kamado: 'kamado',
   charcoal_kettle: 'other',
 };
+const CALC_WRAP_TO_LOG = { none: 'unwrapped', peach_butcher_paper: 'butcher_paper', aluminum_foil: 'foil' };
 
 export function initCookLogCapture(proteinTypeId, modelVersion, stallControls) {
   const $ = (id) => document.getElementById(id);
@@ -46,12 +47,18 @@ export function initCookLogCapture(proteinTypeId, modelVersion, stallControls) {
     }
   }
 
-  function setStatus(message) {
-    const el = $('cookLogStatus');
-    if (el) el.textContent = message || '';
+  async function refreshUnsyncedBadge() {
+    const badge = $('cookLogUnsyncedBadge');
+    const countEl = $('cookLogUnsyncedCount');
+    if (!badge || !countEl) return;
+    const pending = await globalThis.SWQueueUtils.createIndexedDbQueueStorage().getAll();
+    badge.hidden = pending.length === 0;
+    countEl.textContent = String(pending.length);
   }
 
   async function refresh() {
+    refreshUnsyncedBadge();
+
     const consentState = getConsentState();
     if (consentState === null) return showOnly('consent');
     if (consentState === 'denied') return showOnly('denied');
@@ -65,8 +72,15 @@ export function initCookLogCapture(proteinTypeId, modelVersion, stallControls) {
     }
   }
 
+  function setStatus(message) {
+    const el = $('cookLogStatus');
+    if (el) el.textContent = message || '';
+  }
+
   /* ---------- Consent ---------- */
   async function optOut() {
+    // Stop all writes immediately and clear anything queued locally —
+    // nothing further is sent, and nothing already queued survives.
     setConsent(false);
     await globalThis.SWQueueUtils.clearAll();
     refresh();
@@ -101,7 +115,7 @@ export function initCookLogCapture(proteinTypeId, modelVersion, stallControls) {
     const altitude = $('cookLogAltitude').value;
 
     const payload = {
-      anon_client_id: getOrCreateAnonClientId() || getAnonClientId(),
+      anon_client_id: getAnonClientId(),
       protein_type: proteinTypeId,
       model_version: modelVersion,
       weight_lb: stallControls.state.weight,
@@ -117,12 +131,19 @@ export function initCookLogCapture(proteinTypeId, modelVersion, stallControls) {
 
     setStatus('Starting…');
     const result = await postCookLog(payload);
-    if (!result.ok) {
-      setStatus('Could not start tracking (please try again).');
+    if (result.queued) {
+      // Offline at cook start: keep going locally with a placeholder id;
+      // the real id arrives once the queued POST actually lands (id swap
+      // handled by syncActiveCookId(), called from the online fallback).
+      await globalThis.SWQueueUtils.setActiveCook({ id: null, proteinType: proteinTypeId, startedAt: payload.start_time });
+      setStatus('Offline — will start syncing once you are back online.');
+    } else if (!result.ok) {
+      setStatus('Could not start tracking (server rejected the request).');
       return;
+    } else {
+      await globalThis.SWQueueUtils.setActiveCook({ id: result.data.id, proteinType: proteinTypeId, startedAt: payload.start_time });
+      setStatus('');
     }
-    await globalThis.SWQueueUtils.setActiveCook({ id: result.data.id, proteinType: proteinTypeId, startedAt: payload.start_time });
-    setStatus('');
     refresh();
   });
 
@@ -139,10 +160,14 @@ export function initCookLogCapture(proteinTypeId, modelVersion, stallControls) {
   async function patchActiveCook(fields, statusMessage) {
     const cook = await globalThis.SWQueueUtils.getActiveCook();
     if (!cook) return;
+    if (cook.id == null) {
+      setStatus('Still offline from cook start — this update will sync once the cook itself does.');
+      return;
+    }
     setStatus(statusMessage ? statusMessage + '…' : 'Saving…');
     const result = await patchCookLog(cook.id, fields);
-    setStatus(result.ok ? '' : 'Could not save (please try again).');
-    if (result.ok) {
+    setStatus(result.queued ? 'Saved — will sync once back online.' : result.ok ? '' : 'Could not save (server rejected the request).');
+    if (result.ok || result.queued) {
       await globalThis.SWQueueUtils.setActiveCook({ ...cook, ...fields, finishedAt: fields.finish_time ? true : cook.finishedAt });
       refresh();
     }
@@ -185,6 +210,16 @@ export function initCookLogCapture(proteinTypeId, modelVersion, stallControls) {
   if (cookMethodSelect && PIT_TO_COOK_METHOD[stallControls.state.pit]) {
     cookMethodSelect.value = PIT_TO_COOK_METHOD[stallControls.state.pit];
   }
+
+  /* ---------- Offline fallback: online/visibilitychange (Safari has no Background Sync) ---------- */
+  window.addEventListener('online', () => {
+    drainQueueNow().then(refresh);
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && navigator.onLine) {
+      drainQueueNow().then(refresh);
+    }
+  });
 
   refresh();
 }

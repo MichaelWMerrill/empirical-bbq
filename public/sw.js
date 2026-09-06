@@ -18,7 +18,7 @@
  * content deploy — hashed asset filenames already change on their own when
  * their content does).
  */
-importScripts('/sw-cache-utils.js');
+importScripts('/sw-cache-utils.js', '/sw-queue-utils.js');
 var CACHE_VERSION = 'v1';
 var STATIC_CACHE_NAME = self.SWCacheUtils.STATIC_CACHE_PREFIX + CACHE_VERSION;
 
@@ -65,5 +65,16 @@ self.addEventListener('fetch', function (event) {
         });
       });
     })
+  );
+});
+
+// Cook-log capture UI: drains the offline write queue (see sw-queue-utils.js)
+// once connectivity is back, for browsers that support Background Sync. The
+// page-side online/visibilitychange listener (cookLogCapture.controller.js)
+// is the fallback for browsers that don't (Safari) — belt and suspenders.
+self.addEventListener('sync', function (event) {
+  if (event.tag !== 'cook-log-queue') return;
+  event.waitUntil(
+    self.SWQueueUtils.drainQueue(self.SWQueueUtils.createIndexedDbQueueStorage(), self.SWQueueUtils.createDefaultSendFn())
   );
 });

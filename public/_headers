@@ -2,11 +2,14 @@
 # https://developers.cloudflare.com/workers/static-assets/headers/
 
 # Service Worker scripts: force revalidation on every request so a deploy's
-# cache-versioning fix (see public/sw.js, public/sw-cache-utils.js) is never
-# itself stuck behind a stale cached copy of the Worker script.
+# cache-versioning fix (see public/sw.js, public/sw-cache-utils.js,
+# public/sw-queue-utils.js) is never itself stuck behind a stale cached copy
+# of the Worker script.
 /sw.js
   Cache-Control: no-cache
 /sw-cache-utils.js
+  Cache-Control: no-cache
+/sw-queue-utils.js
   Cache-Control: no-cache
 
 /*
