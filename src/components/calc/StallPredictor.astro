@@ -291,12 +291,34 @@ const heading = protein.meta.id === 'beef_brisket' ? 'Stall Predictor' : `${prot
 
 <script>
   import { initStallPredictor } from './stallPredictor.controller.js';
-  import { initCookLogCapture } from './cookLogCapture.controller.js';
   import { PROTEINS } from '../../utils/proteinRegistry.js';
   document.addEventListener('DOMContentLoaded', () => {
     const id = document.querySelector('[data-stall-protein]')?.dataset.stallProtein || 'beef_brisket';
     const protein = PROTEINS[id] || PROTEINS.beef_brisket;
     const stallControls = initStallPredictor(protein);
-    initCookLogCapture(protein.meta.id, protein.meta.version, stallControls);
+
+    // Cook-log capture is a below-the-fold, opt-in extra most visitors never
+    // touch (they came for the cook-time number). Lazy-loaded on approach
+    // rather than bundled into the page's main script, so the ~8KB it adds
+    // (2.7KB gzipped — a >50% increase to this page's JS) is never fetched
+    // or parsed by someone who scrolls past it, or leaves before they get
+    // there. Falls back to loading immediately if IntersectionObserver is
+    // unavailable, so the feature still works everywhere.
+    const panel = document.querySelector('[data-cook-log-capture]');
+    if (!panel) return;
+    const loadCapture = () => import('./cookLogCapture.controller.js').then(({ initCookLogCapture }) => {
+      initCookLogCapture(protein.meta.id, protein.meta.version, stallControls);
+    });
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries, obs) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          obs.disconnect();
+          loadCapture();
+        }
+      }, { rootMargin: '200px' });
+      observer.observe(panel);
+    } else {
+      loadCapture();
+    }
   });
 </script>
