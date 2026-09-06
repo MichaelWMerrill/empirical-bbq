@@ -14,9 +14,7 @@
     {
       "binding": "DB",
       "database_name": "cook-log-db",
-      // Placeholder — replace after running:
-      //   wrangler d1 create cook-log-db
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
+      "database_id": "fe68bc57-c601-4e34-80cd-7752e4510206"
     }
   ]
 }

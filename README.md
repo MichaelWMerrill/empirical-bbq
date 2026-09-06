@@ -173,18 +173,22 @@ identifier. Weight bounds used for validation are read directly from
 `PROTEINS[...].thermal.geometry.weight_bounds` in `src/utils/proteinRegistry.js` (the same
 per-protein calculator data), not reinvented in the Worker.
 
-**Deploying** (not yet done — this repo ships the code, not the live infrastructure):
+**Deploying**:
+
+- [x] D1 database created (`cook-log-db`) and the migration applied — `wrangler.jsonc`'s
+      `database_id` is the real one, not a placeholder.
+- [ ] The Worker itself deployed (`npx wrangler deploy` from `workers/cook-log-service/`).
+- [ ] A public route or custom domain attached in the Cloudflare dashboard so
+      `empiricalbbq.com/api/cook-logs*` actually reaches it — not in-repo config for
+      `pitmaster-command-center` either, so this is a dashboard step, not a code change.
 
 ```bash
 cd workers/cook-log-service
-npx wrangler d1 create cook-log-db   # then paste the returned database_id into wrangler.jsonc
-npx wrangler d1 migrations apply cook-log-db --remote
 npx wrangler deploy
 ```
 
-The Worker also needs a public route or custom domain attached in the Cloudflare dashboard
-before the (future) PWA can reach it — that attachment isn't in-repo config for
-`pitmaster-command-center` either, so it's a deploy-time step, not a code change.
+Until both remaining steps are done, `POST /api/cook-logs` from the live site has nowhere to
+land — the capture UI will show "Could not start tracking."
 
 **Aggregation**: `scripts/cook-log-report.mjs` is an ad hoc, human-run script (not wired into
 CI or any build step, and it never writes back to a model constant or golden test) that shells
