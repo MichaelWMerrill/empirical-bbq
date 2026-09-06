@@ -4,7 +4,7 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout
   title="Empirical BBQ | Privacy Policy"
-  description="Privacy Policy for Empirical BBQ — how we use local browser storage, anonymous Cloudflare Web Analytics, Amazon Associate affiliate links, and programmatic advertising cookies."
+  description="Privacy Policy for Empirical BBQ — local browser storage, the opt-in anonymous cook log, Cloudflare Web Analytics, Amazon Associate affiliate links, and programmatic advertising cookies."
   ogUrl="https://empiricalbbq.com/privacy"
   favicon="🔒"
   bodyClass="page-privacy min-h-screen flex flex-col bg-base-850 text-base-300 font-display antialiased selection:bg-flame-500/30"
@@ -19,7 +19,7 @@ import Layout from '../layouts/Layout.astro';
           <span class="text-xs font-semibold tracking-wide text-flame-300 uppercase">Legal</span>
         </div>
         <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-[1.05]">Privacy Policy</h1>
-        <p class="mt-3 text-sm text-base-500 font-mono">Last updated: July 11, 2026</p>
+        <p class="mt-3 text-sm text-base-500 font-mono">Last updated: September 6, 2026</p>
       </header>
 
       <!-- Policy body -->
@@ -35,19 +35,49 @@ import Layout from '../layouts/Layout.astro';
         </section>
 
         <section>
-          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">1.</span> Local Browser Storage (localStorage)</h2>
+          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">1.</span> Local Browser Storage &amp; Offline Caching</h2>
           <p>
             Our calculators save your preferences and inputs directly in your browser using
             <span class="font-mono text-base-200">localStorage</span> — for example, your saved rig configuration,
             wrap and pit selections, weights, and other tool settings ("layout saving"). This data is stored
-            <strong class="text-white">only on your device</strong>, is never transmitted to us or to any server, and is
-            used solely to remember your setup between visits and across our tools. You can erase it at any time by
-            clearing your browser's site data for this domain, or by using any in-app "reset" controls we provide.
+            <strong class="text-white">only on your device</strong> and is used solely to remember your setup
+            between visits and across our tools. You can erase it at any time by clearing your browser's site
+            data for this domain, or by using any in-app "reset" controls we provide.
+          </p>
+          <p class="mt-3">
+            The site also registers a <strong class="text-white">Service Worker</strong> so it can be installed
+            like an app. It caches our own build files (scripts and stylesheets) on your device for faster
+            repeat visits — it does not cache pages or send any data anywhere, and it cannot see or intercept
+            the cook-log traffic described in Section 2. See Section 2 for the one feature on this site that
+            does send data off your device, and only if you turn it on.
           </p>
         </section>
 
         <section>
-          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">2.</span> Anonymous Usage Analytics (Cloudflare Web Analytics)</h2>
+          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">2.</span> Cook Log (opt-in only)</h2>
+          <p>
+            The Stall Predictor pages offer an optional <strong class="text-white">cook log</strong>: if you
+            choose to turn it on, we collect the protein type, weight, your cook's timeline (start, wrap,
+            stall markers, finish, rest), and the calculator's predicted vs. actual cook time, plus whatever
+            optional details you choose to add (target pit temp, cook method, ambient temperature, altitude).
+            This is used only for a periodic, human-reviewed check on whether our calculator models need
+            retuning — it is never sold, never used for advertising, and never combined with the analytics or
+            advertising data described elsewhere in this policy.
+          </p>
+          <p class="mt-3">
+            <strong class="text-white">Off by default, and anonymous.</strong> Nothing is sent unless you
+            explicitly opt in. When you do, your browser generates a random id
+            (<span class="font-mono text-base-200">crypto.randomUUID()</span>) stored in this site's local
+            storage — it is not tied to your name, email, account, or device, and cannot be used to identify
+            you. We do not collect your name, email address, or precise location, ever; altitude, if you
+            choose to enter it, does not identify a person. You can turn this off at any time from the same
+            panel ("Stop sharing cook data"), which immediately stops any further sending and clears anything
+            still queued on your device waiting to sync.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">3.</span> Anonymous Usage Analytics (Cloudflare Web Analytics)</h2>
           <p>
             We use <strong class="text-white">Cloudflare Web Analytics</strong> to understand aggregate, anonymous usage
             of the site (such as page views and general performance). Cloudflare Web Analytics is privacy-first: it does
@@ -60,7 +90,7 @@ import Layout from '../layouts/Layout.astro';
         </section>
 
         <section>
-          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">3.</span> Amazon Associate Affiliate Links</h2>
+          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">4.</span> Amazon Associate Affiliate Links</h2>
           <p>
             Empirical BBQ is a participant in the Amazon Services LLC Associates Program, an affiliate advertising
             program. Some outbound links on our pages are affiliate links, and
@@ -73,7 +103,7 @@ import Layout from '../layouts/Layout.astro';
         </section>
 
         <section>
-          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">4.</span> Programmatic Advertising &amp; Cookies</h2>
+          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">5.</span> Programmatic Advertising &amp; Cookies</h2>
           <p>
             We may display advertising served by third-party programmatic ad networks, including
             <strong class="text-white">Google AdSense</strong>. These networks may use cookies — including Google's
@@ -108,16 +138,17 @@ import Layout from '../layouts/Layout.astro';
         </section>
 
         <section>
-          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">5.</span> Information We Do Not Collect</h2>
+          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">6.</span> Information We Do Not Collect</h2>
           <p>
             We do not require registration and do not collect names, email addresses, passwords, or payment
-            information on this site. We do not sell or rent personal information. The only data tied to you personally
-            lives in your own browser's local storage, as described in Section 1.
+            information on this site — including through the opt-in cook log described in Section 2. We do not
+            sell or rent personal information. Aside from the anonymized, opt-in cook log, the only data tied to
+            your device lives in your own browser's local storage, as described in Section 1.
           </p>
         </section>
 
         <section>
-          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">6.</span> Third-Party Links</h2>
+          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">7.</span> Third-Party Links</h2>
           <p>
             Our site links to third-party websites (such as Amazon and advertisers). We are not responsible for the
             privacy practices or content of those sites. We encourage you to review the privacy policy of any site you
@@ -126,7 +157,7 @@ import Layout from '../layouts/Layout.astro';
         </section>
 
         <section>
-          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">7.</span> Children's Privacy</h2>
+          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">8.</span> Children's Privacy</h2>
           <p>
             This site is intended for a general audience and is not directed to children under 13. We do not knowingly
             collect personal information from children.
@@ -134,7 +165,7 @@ import Layout from '../layouts/Layout.astro';
         </section>
 
         <section>
-          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">8.</span> Changes to This Policy</h2>
+          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">9.</span> Changes to This Policy</h2>
           <p>
             We may update this Privacy Policy from time to time. Changes take effect when posted on this page, and the
             "Last updated" date above will be revised accordingly.
@@ -142,7 +173,7 @@ import Layout from '../layouts/Layout.astro';
         </section>
 
         <section>
-          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">9.</span> Contact</h2>
+          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">10.</span> Contact</h2>
           <p>
             Questions about this Privacy Policy can be directed to
             <a href="mailto:privacy@empiricalbbq.com">privacy@empiricalbbq.com</a>.
