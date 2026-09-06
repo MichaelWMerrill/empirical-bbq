@@ -27,7 +27,21 @@ self.addEventListener('install', function () {
 });
 
 self.addEventListener('activate', function (event) {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches
+      .keys()
+      .then(function (cacheNames) {
+        var stale = self.SWCacheUtils.getStaleCacheNames(cacheNames, STATIC_CACHE_NAME);
+        return Promise.all(
+          stale.map(function (name) {
+            return caches.delete(name);
+          })
+        );
+      })
+      .then(function () {
+        return self.clients.claim();
+      })
+  );
 });
 
 self.addEventListener('fetch', function (event) {
