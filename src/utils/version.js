@@ -23,7 +23,7 @@
 import { DATA } from './stallEngine.js';
 
 /** Calendar release version of the whole site (homepage badge + footer). */
-export const SITE_VERSION = '2026.3';
+export const SITE_VERSION = '2026.4';
 
 /** Computational stall-engine version (from the engine's own metadata). */
 export const ENGINE_VERSION = DATA.simulation_metadata.engine_version;
