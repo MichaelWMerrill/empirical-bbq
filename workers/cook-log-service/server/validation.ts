@@ -1,18 +1,12 @@
 /*
  * Validation for cook-log-service request bodies.
  *
- * Weight bounds are NOT reinvented here — they're read straight from
- * PROTEINS[...].thermal.geometry.weight_bounds in the calculator's own
- * protein registry, so this Worker can never drift from the ranges the
- * calculators already enforce.
- *
- * Caveat: pork_ribs has no weight-based UI axis (ribs are planned by rack
- * count, not raw weight — see proteinRegistry.js), so its weight_bounds
- * (1-8) is actually a rack count, not pounds. It's reused anyway because
- * it's the only per-protein bound the registry defines for ribs; a real
- * per-pound rib range should replace this once one exists upstream.
+ * Weight bounds come from ./weightBounds.ts — see that file for why they're
+ * a kept-honest duplicate of PROTEINS[...].thermal.geometry.weight_bounds
+ * rather than a direct import (this Worker's build can't reach outside its
+ * own directory) and for the pork_ribs racks-not-pounds caveat.
  */
-import { PROTEINS } from '../../../src/utils/proteinRegistry.js';
+import { WEIGHT_BOUNDS } from './weightBounds';
 
 export const PROTEIN_TYPES = ['beef_brisket', 'pork_shoulder', 'pork_ribs', 'turkey'] as const;
 export const WEIGHT_SOURCES = ['scale', 'estimated'] as const;
@@ -56,8 +50,7 @@ export interface PatchCookSession {
 
 export type ValidationResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
-const weightBoundsFor = (protein: ProteinType): { min: number; max: number } =>
-  PROTEINS[protein].thermal.geometry.weight_bounds;
+const weightBoundsFor = (protein: ProteinType): { min: number; max: number } => WEIGHT_BOUNDS[protein];
 
 const isNonEmptyString = (v: unknown): v is string => typeof v === 'string' && v.trim().length > 0;
 const isFiniteNumber = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
