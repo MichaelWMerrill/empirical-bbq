@@ -95,17 +95,19 @@ After the extensionless-canonical migration deploys, do these by hand:
       lazy-loaded (dynamic `import()` on scroll-approach) after the
       capture module was found adding a >60% JS-bundle increase to the
       stall pages when bundled eagerly.
-      **D1 database created and migrated** (2026-09-06): `cook-log-db` is
-      live with the `cook_sessions` schema; `wrangler.jsonc`'s
-      `database_id` is real, not a placeholder. Still open: deploying the
-      Worker itself (`wrangler deploy`) and wiring a public route in the
-      Cloudflare dashboard so `empiricalbbq.com/api/cook-logs*` actually
-      reaches it — until both are done the capture UI has nowhere to send
-      its writes. Also still open: a manual QA pass on a real device (the
-      PR's own checklist — Background Sync's actual timing isn't testable
-      deterministically under browser automation), final consent copy,
-      and the manual, human-approved recalibration step this is
-      explicitly not automated into.
+      **Live in production** (2026-09-06): `cook-log-db` is live with the
+      `cook_sessions` schema, `cook-log-service` is deployed and
+      auto-deploys on every push to `main`, and `empiricalbbq.com/api/cook-logs*`
+      is reachable. Verified end-to-end from a real device on the live
+      site: start a cook, hit a checkpoint, confirm the row in D1. See
+      README "Cook log data layer" for the two real bugs this surfaced and
+      fixed along the way (PR #65 — a Cloudflare monorepo-build import
+      path; PR #66 — every checkpoint PATCH was missing `anon_client_id`
+      and silently failing) and a pre-existing Cloudflare Access
+      application that was found gating the entire site (unrelated to
+      this feature, now removed). Still open: final consent copy, and the
+      manual, human-approved recalibration step this is explicitly not
+      automated into.
 - [ ] 10. Embeddable calculator widgets (L) — iframe/script embeds for BBQ
       blogs; every embed is a branded backlink.
 - [x] 11. Contextual affiliate expansion (S) — per-calculator gear modules
@@ -126,10 +128,11 @@ After the extensionless-canonical migration deploys, do these by hand:
       suppress ad impressions. Full mid-cook probe-temp logging still
       pending.
 - [ ] Community calibration loop (= #9 above) — data layer and capture UI
-      both merged (PR #61, PR #62) — see README "Cook log data layer" and
-      "Cook log capture UI". D1 database created and migrated
-      (2026-09-06); the Worker deploy, route wiring, the manual QA
-      checklist on PR #62, and recalibration itself still pending.
+      both merged (PR #61, PR #62) and **live in production** (2026-09-06,
+      PR #65 + PR #66) — see README "Cook log data layer" and "Cook log
+      capture UI". Verified end-to-end on the real site. Recalibration
+      itself (manual, human-approved) still pending, along with final
+      consent copy.
 - [ ] Email capture / ESP integration (= #6 above).
 - [x] CSP enforce-mode flip — done: `public/_headers` now sends
       `Content-Security-Policy` (was `-Report-Only`), same validated allowlist.
