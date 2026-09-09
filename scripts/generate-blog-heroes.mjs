@@ -463,7 +463,46 @@ const confidenceBandMotif = `
   <text x="960" y="745" font-family="${FONT}" font-size="15" font-weight="700" fill="#fdba74" text-anchor="end">NAKED &#177;25%</text>
 `;
 
+// Danger-zone-vs-real-cook post: a horizontal timeline with a dashed 4-hour
+// guideline marker, and two bars showing how far past it a normal brisket
+// and pork shoulder cook actually run at the stall predictor's own defaults.
+const dangerZoneRealityMotif = `
+  <text x="1240" y="460" font-family="${FONT}" font-size="17" font-weight="700" fill="#7c8aab" text-anchor="middle" letter-spacing="1">TIME TO CLEAR THE DANGER ZONE</text>
+  <text x="1190" y="555" font-family="${FONT}" font-size="13" font-weight="700" fill="#fca5a5" text-anchor="middle">4H GUIDELINE</text>
+  <line x1="1190" y1="575" x2="1190" y2="710" stroke="#fca5a5" stroke-width="3" stroke-dasharray="4 8" opacity="0.7"/>
+  <text x="960" y="605" font-family="${FONT}" font-size="15" font-weight="700" fill="#fdba74" text-anchor="end">BRISKET ~8.1H</text>
+  <rect x="990" y="592" width="405" height="16" rx="8" fill="#f59e0b" fill-opacity="0.75"/>
+  <text x="960" y="695" font-family="${FONT}" font-size="15" font-weight="700" fill="#fdba74" text-anchor="end">PORK SHOULDER ~9.2H</text>
+  <rect x="990" y="682" width="460" height="16" rx="8" fill="url(#title)"/>
+`;
+
+// Ribs-no-party-planner post: the same "shown vs. used" two-node diagram as
+// the permeability and turkey-scheduler posts, reused deliberately — ribs
+// sits outside the party planner's protein list because it has no yield
+// block, while the other three proteins do.
+const ribsExcludedMotif = `
+  <text x="1230" y="465" font-family="${FONT}" font-size="17" font-weight="700" fill="#7c8aab" text-anchor="middle" letter-spacing="1">WHO THE PARTY PLANNER SERVES</text>
+  <g>
+    <rect x="970" y="520" width="260" height="52" rx="10" fill="#7c8aab" fill-opacity="0.3" stroke="#7c8aab" stroke-opacity="0.5" stroke-width="1.5"/>
+    <text x="1100" y="551" font-family="${FONT}" font-size="15" font-weight="700" fill="#7c8aab" text-anchor="middle">RIBS</text>
+    <text x="1100" y="592" font-family="${FONT}" font-size="12" font-weight="600" fill="#7c8aab" text-anchor="middle" opacity="0.7">no yield block &#8212; excluded</text>
+  </g>
+  <g>
+    <rect x="970" y="656" width="260" height="52" rx="10" fill="#f97316" fill-opacity="0.16" stroke="#f97316" stroke-opacity="0.6" stroke-width="1.5"/>
+    <text x="1100" y="687" font-family="${FONT}" font-size="13" font-weight="700" fill="#fdba74" text-anchor="middle">BRISKET / PORK / TURKEY</text>
+    <text x="1100" y="728" font-family="${FONT}" font-size="12" font-weight="600" fill="#fdba74" text-anchor="middle" opacity="0.85">have a yield block</text>
+  </g>
+  <rect x="1330" y="555" width="160" height="150" rx="12" fill="none" stroke="#7c8aab" stroke-width="2" stroke-opacity="0.6"/>
+  <text x="1410" y="628" font-family="${FONT}" font-size="15" font-weight="700" fill="#fdba74" text-anchor="middle">party</text>
+  <text x="1410" y="649" font-family="${FONT}" font-size="15" font-weight="700" fill="#fdba74" text-anchor="middle">planner</text>
+  <line x1="1230" y1="546" x2="1330" y2="600" stroke="#7c8aab" stroke-width="3" stroke-dasharray="3 8" opacity="0.5"/>
+  <text x="1275" y="565" font-family="${FONT}" font-size="20" font-weight="700" fill="#fca5a5" text-anchor="middle">&#215;</text>
+  <line x1="1230" y1="682" x2="1330" y2="640" stroke="url(#title)" stroke-width="4"/>
+`;
+
 const jobs = [
+  { file: 'public/blog/danger-zone-guideline-vs-real-cook.jpg', label: 'DANGER ZONE: THE MATH', motif: dangerZoneRealityMotif },
+  { file: 'public/blog/ribs-no-party-planner.jpg', label: 'RIBS: NO PARTY PLANNER', motif: ribsExcludedMotif },
   { file: 'public/blog/party-planner-appetite-asymmetry.jpg', label: 'THE APPETITE DIAL', motif: appetiteMotif },
   { file: 'public/blog/cook-scheduler-confidence-band.jpg', label: 'FIRE-UP CONFIDENCE', motif: confidenceBandMotif },
   { file: 'public/blog/wrap-permeability-is-decorative.jpg', label: 'PERMEABILITY MYTH', motif: permeabilityMotif },
