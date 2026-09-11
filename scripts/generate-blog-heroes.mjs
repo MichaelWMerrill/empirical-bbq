@@ -500,6 +500,21 @@ const ribsExcludedMotif = `
   <line x1="1230" y1="682" x2="1330" y2="640" stroke="url(#title)" stroke-width="4"/>
 `;
 
+// Poor man's burnt ends post: two cost-per-pound bars — brisket point priced
+// out via the whole packer ($9+/lb) vs a standalone chuck roast ($4/lb) — the
+// price gap the post explains away as chemistry, not cut-specific magic.
+const chuckVsPointMotif = `
+  <text x="1250" y="450" font-family="${FONT}" font-size="17" font-weight="700" fill="#7c8aab" text-anchor="middle" letter-spacing="1">COST PER POUND</text>
+  <g>
+    <rect x="1120" y="502" width="100" height="320" rx="10" fill="#7c8aab" fill-opacity="0.45"/>
+    <rect x="1300" y="682" width="100" height="140" rx="10" fill="url(#title)"/>
+    <text x="1170" y="485" font-family="${FONT}" font-size="19" font-weight="700" fill="#7c8aab" text-anchor="middle">$9+/LB</text>
+    <text x="1350" y="665" font-family="${FONT}" font-size="19" font-weight="700" fill="#fdba74" text-anchor="middle">$4/LB</text>
+    <text x="1170" y="850" font-family="${FONT}" font-size="15" font-weight="600" fill="#7c8aab" text-anchor="middle">BRISKET POINT</text>
+    <text x="1350" y="850" font-family="${FONT}" font-size="15" font-weight="600" fill="#fdba74" text-anchor="middle">CHUCK ROAST</text>
+  </g>
+`;
+
 const jobs = [
   { file: 'public/blog/danger-zone-guideline-vs-real-cook.jpg', label: 'DANGER ZONE: THE MATH', motif: dangerZoneRealityMotif },
   { file: 'public/blog/ribs-no-party-planner.jpg', label: 'RIBS: NO PARTY PLANNER', motif: ribsExcludedMotif },
@@ -526,6 +541,7 @@ const jobs = [
   { file: 'public/blog/wrap-timing-not-just-what.jpg', label: 'WRAP: TIMING MATTERS', motif: wrapBandMotif },
   { file: 'public/blog/turkey-hold-window-gap.jpg', label: 'TURKEY HOLD WINDOW', motif: turkeyHoldMotif },
   { file: 'public/blog/stall-exponent-universality.jpg', label: 'STALL EXPONENT: 0.333', motif: stallUniversalityMotif },
+  { file: 'public/blog/poor-mans-burnt-ends.jpg', label: 'POOR MAN’S BURNT ENDS', motif: chuckVsPointMotif },
 ];
 
 for (const { file, label, motif } of jobs) {
