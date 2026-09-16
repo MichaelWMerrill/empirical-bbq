@@ -13,9 +13,13 @@ import GearModule from './GearModule.astro';
 
 export interface Props {
   protein?: (typeof PROTEINS)[keyof typeof PROTEINS];
+  // Blog entries to surface in "Read more" — computed by the page from
+  // astro:content, since that module isn't available where this component is
+  // rendered directly (see the calc smoke tests).
+  relatedPosts?: { id: string; data: { title: string } }[];
 }
 
-const { protein = PROTEINS.beef_brisket } = Astro.props;
+const { protein = PROTEINS.beef_brisket, relatedPosts = [] } = Astro.props;
 const y = protein.yield;
 const init = y.initialState;
 const market = y.defaults.market_prices;
@@ -245,7 +249,21 @@ const segPad = (c) => (c === 2 ? 'px-3' : 'px-2');
 
   <footer class="mt-8 text-center text-[11px] text-smoke-500">
     <p>Estimates based on empirical trim &amp; shrinkage matrix v{protein.meta.version}. Actual yields vary by cut, cooker, and pitmaster.</p>
-    <p class="mt-2">Read more: <a href="/blog/science-of-smoke" class="text-ember-400 hover:text-ember-300 underline decoration-dotted underline-offset-2">The Science of Smoke: How to Get Perfect Brisket Bark</a></p>
+    {
+      relatedPosts.length > 0 && (
+        <p class="mt-2">
+          Read more:{' '}
+          {relatedPosts.map((post, i) => (
+            <>
+              {i > 0 && ' · '}
+              <a href={`/blog/${post.id}`} class="text-ember-400 hover:text-ember-300 underline decoration-dotted underline-offset-2">
+                {post.data.title}
+              </a>
+            </>
+          ))}
+        </p>
+      )
+    }
     <p class="mt-2"><a href="/methodology" class="text-ember-400 hover:text-ember-300 underline decoration-dotted underline-offset-2">Methodology &amp; sources</a> · <a href="/privacy" class="text-ember-400 hover:text-ember-300 underline decoration-dotted underline-offset-2">Privacy Policy</a></p>
   </footer>
 </div>
