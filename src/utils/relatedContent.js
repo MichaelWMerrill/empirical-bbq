@@ -30,19 +30,51 @@ const CALCULATOR_LABELS = {
 // listed protein matches) land here instead of going unlinked.
 const FALLBACK_CALCULATOR_URL = '/rest-calculator';
 
-/**
- * 2-4 posts tagged with `proteinId`. `pin` (post ids) are guaranteed to lead
- * the list when present — for a tag as broad as `general`, pure recency can
- * bump a post that's actually on-topic (e.g. faux-cambro-holding for the rest
- * calculator) in favor of something merely new. The rest fill in by recency.
+/*
+ * Posts GSC's "Discovered - currently not indexed" report flagged as of the
+ * 2026-09-13 export (18 URLs, all blog posts; see PR #70). Point-in-time
+ * snapshot: re-pull the GSC export periodically and update this set, or its
+ * value decays as pages get indexed (drop them) or newly stuck (add them).
  */
-export function pickRelatedPosts(posts, proteinId, { limit = 4, pin = [] } = {}) {
-  const matches = posts.filter((post) => post.data.protein.includes(proteinId));
-  const pinned = pin.map((id) => matches.find((post) => post.id === id)).filter(Boolean);
-  const rest = matches
-    .filter((post) => !pin.includes(post.id))
-    .sort((a, b) => new Date(b.data.pubDate) - new Date(a.data.pubDate));
-  return [...pinned, ...rest].slice(0, limit);
+const NEEDS_CRAWL_SIGNAL = new Set([
+  'climate-stall-paradox',
+  'cook-scheduler-confidence-band',
+  'danger-zone-guideline-vs-real-cook',
+  'faux-cambro-holding',
+  'party-planner-appetite-asymmetry',
+  'physics-of-the-stall',
+  'poor-mans-burnt-ends',
+  'pork-shoulder-bone-in-yield-gap',
+  'ribs-no-party-planner',
+  'ribs-two-clocks',
+  'science-of-smoke',
+  'stall-exponent-universality',
+  'turkey-brine-vs-spatchcock-yield',
+  'turkey-danger-zone-clock',
+  'turkey-hold-window-gap',
+  'turkey-scheduler-dead-controls',
+  'wood-splits-btu-vs-burn-rate',
+  'wrap-timing-not-just-what',
+]);
+
+/*
+ * Of the above, these already had a calculator link before this PR (the old
+ * single hardcoded "Read more" line) and are still unindexed regardless —
+ * losing that link would be a regression, not neutral, so they outrank
+ * every other unindexed post for a slot. Everything else in
+ * NEEDS_CRAWL_SIGNAL is a pure addition: capped out by the beef_brisket
+ * protein's 7 unindexed posts competing for 4 slots is a worse outcome than
+ * before only for these two.
+ */
+const REGRESSES_IF_DROPPED = new Set(['science-of-smoke', 'faux-cambro-holding']);
+
+/** 2-4 posts tagged with `proteinId`: previously-linked-and-still-unindexed first, then unindexed, then most recent. */
+export function pickRelatedPosts(posts, proteinId, { limit = 4 } = {}) {
+  const rank = (post) => (REGRESSES_IF_DROPPED.has(post.id) ? 0 : NEEDS_CRAWL_SIGNAL.has(post.id) ? 1 : 2);
+  return posts
+    .filter((post) => post.data.protein.includes(proteinId))
+    .sort((a, b) => rank(a) - rank(b) || new Date(b.data.pubDate) - new Date(a.data.pubDate))
+    .slice(0, limit);
 }
 
 /** The one calculator a blog post should link back to, from its first matching protein. */

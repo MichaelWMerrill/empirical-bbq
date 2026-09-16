@@ -6,10 +6,8 @@ import FaqSection from '../components/calc/FaqSection.astro';
 import { pickRelatedPosts } from '../utils/relatedContent.js';
 
 // Protein is a client-side input here, not a page identity — match on the
-// `general` tag rather than any single protein. faux-cambro-holding is
-// pinned first: it's the one post actually about hold time, which a pure
-// recency sort over the general-tagged pool would otherwise bump.
-const relatedPosts = pickRelatedPosts(await getCollection('blog'), 'general', { pin: ['faux-cambro-holding'] });
+// `general` tag rather than any single protein.
+const relatedPosts = pickRelatedPosts(await getCollection('blog'), 'general');
 
 const pageUrl = 'https://empiricalbbq.com/rest-calculator';
 const publisher = {
