@@ -8,6 +8,14 @@
 import { PROTEINS } from '../../utils/proteinRegistry.js';
 import { HOLD_PROFILES } from '../../utils/restEngine.js';
 
+export interface Props {
+  // Blog entries to surface in "Read more" — computed by the page from
+  // astro:content, since that module isn't available where this component is
+  // rendered directly (see the calc smoke tests).
+  relatedPosts?: { id: string; data: { title: string } }[];
+}
+
+const { relatedPosts = [] } = Astro.props;
 const proteins = Object.values(PROTEINS);
 const holds = Object.entries(HOLD_PROFILES).map(([value, h]) => ({ value, name: h.name }));
 const initPull = PROTEINS.beef_brisket.thermal.finish_temp;
@@ -115,7 +123,21 @@ const holdLabels = {
 
       <footer class="text-center text-[11px] text-slate-500">
         <p>Derived from first principles &mdash; a Newtonian-cooling model, not fitted to published times. Real holds still vary with mass, wrap, and how pre-warmed the vessel is &mdash; always verify with a probe and keep hot food above 140&deg;F.</p>
-        <p class="mt-2">Read more: <a href="/blog/faux-cambro-holding" class="text-sky-400 hover:text-sky-300 underline decoration-dotted underline-offset-2">The Faux Cambro: How Long You Can Really Hold Barbecue</a></p>
+        {
+          relatedPosts.length > 0 && (
+            <p class="mt-2">
+              Read more:{' '}
+              {relatedPosts.map((post, i) => (
+                <>
+                  {i > 0 && ' · '}
+                  <a href={`/blog/${post.id}`} class="text-sky-400 hover:text-sky-300 underline decoration-dotted underline-offset-2">
+                    {post.data.title}
+                  </a>
+                </>
+              ))}
+            </p>
+          )
+        }
         <p class="mt-2"><a href="/methodology" class="text-sky-400 hover:text-sky-300 underline decoration-dotted underline-offset-2">Methodology &amp; sources</a> · <a href="/privacy" class="text-sky-400 hover:text-sky-300 underline decoration-dotted underline-offset-2">Privacy Policy</a></p>
       </footer>
     </section>
