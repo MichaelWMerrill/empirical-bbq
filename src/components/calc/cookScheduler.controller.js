@@ -236,8 +236,9 @@ export function initCookScheduler(protein = PROTEINS.beef_brisket) {
   function downloadIcs() {
     const serve = state.serveAt ? new Date(state.serveAt) : null;
     if (!serve || isNaN(serve.getTime())) return;
-    const plan = buildMilestones({ duration: cookDuration(protein, engineState()), inputs: milestoneInputs(), serve });
-    const steps = buildCookSteps(plan, { finishTemp, pitTemp: state.pitTemp, wrapTemp: state.wrapTemp }, { includePrep: false }).filter((st) =>
+    const duration = cookDuration(protein, engineState());
+    const plan = buildMilestones({ duration, inputs: milestoneInputs(), serve });
+    const steps = buildCookSteps(plan, { finishTemp, pitTemp: state.pitTemp, wrapTemp: state.wrapTemp, totalTime: duration.totalTime }, { includePrep: false }).filter((st) =>
       LEGACY_STEP_IDS.has(st.id)
     );
     const id = planId(

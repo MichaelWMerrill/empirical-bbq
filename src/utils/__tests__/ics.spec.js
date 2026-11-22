@@ -13,6 +13,7 @@ import {
   foldLine,
   googleCalendarUrl,
   formatStepTime,
+  formatDuration,
   ESTIMATE_NOTE,
   POINT_EVENT_MIN,
 } from '../ics.js';
@@ -33,7 +34,7 @@ function plan(proteinId, state, { rest = 1, serve = SERVE } = {}) {
 }
 const pork = () => plan('pork_shoulder', { ...BASE, weight: 8.5 });
 const ribs = () => plan('pork_ribs', { ...BASE, cut: 'spare', racks: 3 }, { rest: 0.5 });
-const wording = (p) => ({ finishTemp: p.protein.thermal.finish_temp, pitTemp: p.state.pitTemp, wrapTemp: p.state.wrapTemp });
+const wording = (p) => ({ finishTemp: p.protein.thermal.finish_temp, pitTemp: p.state.pitTemp, wrapTemp: p.state.wrapTemp, totalTime: p.duration.totalTime });
 const stepsFor = (p, opts = {}) => buildCookSteps(p.plan, wording(p), { timeZone: ZONE, ...opts });
 const iso = (d) => d.toISOString();
 const view = (steps) => steps.map((s) => ({ id: s.id, title: s.title, start: iso(s.start), end: iso(s.end), estimate: s.estimate, defaultOn: s.defaultOn, note: s.note }));
@@ -98,7 +99,7 @@ describe('buildCookSteps: pork shoulder, 8.5 lb (snapshot)', () => {
           "end": "2026-11-22T10:05:48.751Z",
           "estimate": false,
           "id": "on",
-          "note": "Cold meat on the grate.",
+          "note": "Cold meat on the grate. Estimated 14h 09m to a 202°F finish.",
           "start": "2026-11-22T09:50:48.751Z",
           "title": "🥩 Meat on",
         },
@@ -116,7 +117,7 @@ describe('buildCookSteps: pork shoulder, 8.5 lb (snapshot)', () => {
           "end": "2026-11-22T21:12:48.092Z",
           "estimate": true,
           "id": "wrap",
-          "note": "Have paper or foil ready. Starts at an internal temperature, so this time is an estimate.",
+          "note": "Start checking the internal temp well before this. Starts at an internal temperature, so this time is an estimate.",
           "start": "2026-11-22T20:57:48.092Z",
           "title": "📦 Wrap at 160°F",
         },
@@ -209,6 +210,59 @@ describe('buildCookSteps: pork shoulder, 8.5 lb (snapshot)', () => {
       expect(text, s.id).not.toMatch(/140|safe|brisket|pork|turkey/i);
       expect(text, s.id).not.toMatch(/bark|liquid|for a while/i); // claims the site does not model or support (science-editor)
     }
+  });
+});
+
+describe('buildCookSteps: the "Meat on" note carries the engine cook time', () => {
+  test('pork shoulder, 8.5 lb: "Cold meat on the grate. Estimated 14h 09m to a 202°F finish."', () => {
+    const p = pork();
+    expect(byId(stepsFor(p), 'on').note).toBe('Cold meat on the grate. Estimated 14h 09m to a 202°F finish.');
+    expect(byId(stepsFor(p), 'on').note).toContain(formatDuration(p.duration.totalTime)); // the engine's totalTime
+  });
+
+  test('without totalTime it falls back to the plan span (the same quantity) and says the same thing', () => {
+    const p = pork();
+    const steps = buildCookSteps(p.plan, { finishTemp: 202, pitTemp: '225', wrapTemp: 160 }, { timeZone: ZONE });
+    expect(byId(steps, 'on').note).toBe(byId(stepsFor(p), 'on').note);
+  });
+
+  test('ribs (fixed blocks): the engine total, with the ribs finish temperature', () => {
+    expect(byId(stepsFor(ribs()), 'on').note).toBe('Cold meat on the grate. Estimated 6h 00m to a 203°F finish.');
+  });
+
+  test('without a finish temperature it still gives the time; with no time at all it is the plain note', () => {
+    const p = pork();
+    expect(byId(buildCookSteps(p.plan, { totalTime: p.duration.totalTime }, { timeZone: ZONE }), 'on').note).toBe('Cold meat on the grate. Estimated 14h 09m.');
+    const bare = { ...p.plan, meatOn: null, pull: null };
+    expect(byId(buildCookSteps(bare, { finishTemp: 202 }, { timeZone: ZONE }), 'on').note).toBe('Cold meat on the grate.');
+  });
+
+  test('Meat on stays a plain step, not an estimate step', () => {
+    expect(byId(stepsFor(pork()), 'on').estimate).toBe(false);
+  });
+});
+
+describe('formatDuration', () => {
+  test.each([
+    [14.15, '14h 09m'],
+    [2, '2h 00m'],
+    [0.75, '45m'],
+    [0.0833, '05m'],
+    [1.99999, '2h 00m'], // rounds to whole minutes first: never "1h 60m"
+    [5.9999, '6h 00m'],
+    [0, '00m'],
+  ])('%s hours is %s', (h, text) => expect(formatDuration(h)).toBe(text));
+});
+
+describe('buildCookSteps: the wrap note', () => {
+  test('stall-method wrap says to start checking well before it, then the estimate note', () => {
+    expect(byId(stepsFor(pork()), 'wrap').note).toBe(`Start checking the internal temp well before this. ${ESTIMATE_NOTE}`);
+    expect(byId(stepsFor(pork()), 'wrap').note).toBe('Start checking the internal temp well before this. Starts at an internal temperature, so this time is an estimate.');
+  });
+  test('the fixed-time ribs wrap is unchanged: a time, not an estimate', () => {
+    const wrap = byId(stepsFor(ribs()), 'wrap');
+    expect(wrap.note).toBe('Wrap now, as the fixed-time method calls for.');
+    expect(wrap.estimate).toBe(false);
   });
 });
 
@@ -445,8 +499,8 @@ describe('buildIcs', () => {
         "DTSTART:20261122T095048Z",
         "DTEND:20261122T100548Z",
         "SUMMARY:🥩 Meat on",
-        "DESCRIPTION:Cold meat on the grate. Planned with Empirical BBQ (empiricalbb",
-        " q.com/cook-scheduler)",
+        "DESCRIPTION:Cold meat on the grate. Estimated 14h 09m to a 202°F finish. P",
+        " lanned with Empirical BBQ (empiricalbbq.com/cook-scheduler)",
         "SEQUENCE:0",
         "BEGIN:VALARM",
         "ACTION:DISPLAY",
@@ -460,9 +514,9 @@ describe('buildIcs', () => {
         "DTSTART:20261122T205748Z",
         "DTEND:20261122T211248Z",
         "SUMMARY:📦 Wrap at 160°F",
-        "DESCRIPTION:Have paper or foil ready. Starts at an internal temperature\\, s",
-        " o this time is an estimate. Planned with Empirical BBQ (empiricalbbq.com/c",
-        " ook-scheduler)",
+        "DESCRIPTION:Start checking the internal temp well before this. Starts at an",
+        "  internal temperature\\, so this time is an estimate. Planned with Empirica",
+        " l BBQ (empiricalbbq.com/cook-scheduler)",
         "SEQUENCE:0",
         "BEGIN:VALARM",
         "ACTION:DISPLAY",

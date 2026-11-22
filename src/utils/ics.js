@@ -79,11 +79,23 @@ function prepStartMs(fireUp, timeZone) {
 /* ------------------------------------------------------------------ */
 
 /**
+ * Hours as the scheduler writes a duration: "14h 09m", "2h 00m", "45m". Rounds to whole minutes first, so it
+ * can never print 60 minutes.
+ */
+export function formatDuration(hours) {
+  const total = Math.round(hours * 60);
+  const hh = Math.floor(total / 60);
+  return `${hh ? `${hh}h ` : ''}${String(total % 60).padStart(2, '0')}m`;
+}
+
+/**
  * Turn buildMilestones() output into calendar steps.
  *
  * @param {object} plan    Result of buildMilestones: { method, serve, pull, meatOn, fireUp,
  *                         stallOnset, stallEnd, milestones:[{id, at}] }.
- * @param {object} [inputs] { finishTemp, pitTemp, wrapTemp } for the step wording.
+ * @param {object} [inputs] { finishTemp, pitTemp, wrapTemp, totalTime } for the step wording. `totalTime` is the
+ *                         engine's cook time in hours (cookDuration().totalTime); if it is not given, the plan's own
+ *                         meat-on to pull span (the same quantity) is used.
  * @param {object} [opts]   { includePrep = true, timeZone } (timeZone: where the cook is; defaults to the device's).
  * @returns {Array<{ id, title, start: Date, end: Date, estimate: boolean, defaultOn: boolean, note: string }>}
  *   Sorted by start. Ids follow the milestone ids: prep (optional), fire, on, stall (only when the plan
@@ -97,6 +109,11 @@ export function buildCookSteps(plan, inputs = {}, { includePrep = true, timeZone
   const timed = new Map(plan.milestones.filter((m) => validDate(m?.at)).map((m) => [m.id, m.at]));
   const isStallMethod = plan.method !== 'method_321';
   const { finishTemp, pitTemp, wrapTemp } = inputs;
+  const totalTime = Number.isFinite(inputs.totalTime)
+    ? inputs.totalTime
+    : validDate(plan.meatOn) && validDate(plan.pull)
+      ? (plan.pull.getTime() - plan.meatOn.getTime()) / (60 * MIN_MS)
+      : null;
   const steps = [];
   const point = (id, title, at, note, extra = {}) => {
     if (!validDate(at)) return;
@@ -125,7 +142,9 @@ export function buildCookSteps(plan, inputs = {}, { includePrep = true, timeZone
     timed.get('fire'),
     pitTemp ? `Preheat the pit to ${pitTemp}°F (${preheatMin} minutes before the meat goes on).` : `Preheat the pit (${preheatMin} minutes before the meat goes on).`
   );
-  point('on', '🥩 Meat on', timed.get('on'), 'Cold meat on the grate.');
+  // The cook time is the engine's (it is what the whole plan was worked backward from), shown as an estimate.
+  const estimated = totalTime > 0 ? ` Estimated ${formatDuration(totalTime)}${finishTemp ? ` to a ${finishTemp}°F finish` : ''}.` : '';
+  point('on', '🥩 Meat on', timed.get('on'), `Cold meat on the grate.${estimated}`);
 
   if (validDate(plan.stallOnset)) {
     point('stall', '⏸️ Stall begins', plan.stallOnset, `The internal temperature may plateau around now. ${ESTIMATE_NOTE}`, { estimate: true, defaultOn: false });
@@ -133,7 +152,7 @@ export function buildCookSteps(plan, inputs = {}, { includePrep = true, timeZone
 
   if (timed.has('wrap')) {
     if (isStallMethod) {
-      point('wrap', wrapTemp ? `📦 Wrap at ${wrapTemp}°F` : '📦 Wrap', timed.get('wrap'), `Have paper or foil ready. ${ESTIMATE_NOTE}`, { estimate: true });
+      point('wrap', wrapTemp ? `📦 Wrap at ${wrapTemp}°F` : '📦 Wrap', timed.get('wrap'), `Start checking the internal temp well before this. ${ESTIMATE_NOTE}`, { estimate: true });
     } else {
       point('wrap', '📦 Wrap in foil', timed.get('wrap'), 'Wrap now, as the fixed-time method calls for.'); // a fixed block (3-2-1 or 2-2-1): a time, not a temperature
     }

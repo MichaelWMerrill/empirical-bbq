@@ -13,6 +13,8 @@
  *   - a point event lasts 15 minutes (was 5), and every event gets SEQUENCE:0;
  *   - the alarm text is the full step title (it was the title without its emoji);
  *   - step wording now comes from buildCookSteps (for example "Pull & rest" is now the "Pull the meat" step).
+ *   - then, on the author's review of the PR: the "Meat on" note carries the engine cook time again ("Estimated 14h 09m
+ *     to a 202°F finish"), and the stall-method wrap note says to start checking the internal temp well before it.
  * Same event set as before for this button (fire, meat on, wrap, sauce, pull, serve). Do not regenerate
  * this to make a refactor pass: a difference outside the list above means the file changed unintentionally.
  *
@@ -65,8 +67,8 @@ const EXPECTED = {
     "DTSTART:<serve-909.2m>",
     "DTEND:<serve-894.2m>",
     "SUMMARY:🥩 Meat on",
-    "DESCRIPTION:Cold meat on the grate. Planned with Empirical BBQ (empiricalbb",
-    " q.com/cook-scheduler)",
+    "DESCRIPTION:Cold meat on the grate. Estimated 14h 09m to a 202°F finish. P",
+    " lanned with Empirical BBQ (empiricalbbq.com/cook-scheduler)",
     "SEQUENCE:0",
     "BEGIN:VALARM",
     "ACTION:DISPLAY",
@@ -80,9 +82,9 @@ const EXPECTED = {
     "DTSTART:<serve-242.2m>",
     "DTEND:<serve-227.2m>",
     "SUMMARY:📦 Wrap at 160°F",
-    "DESCRIPTION:Have paper or foil ready. Starts at an internal temperature\\, s",
-    " o this time is an estimate. Planned with Empirical BBQ (empiricalbbq.com/c",
-    " ook-scheduler)",
+    "DESCRIPTION:Start checking the internal temp well before this. Starts at an",
+    "  internal temperature\\, so this time is an estimate. Planned with Empirica",
+    " l BBQ (empiricalbbq.com/cook-scheduler)",
     "SEQUENCE:0",
     "BEGIN:VALARM",
     "ACTION:DISPLAY",
@@ -151,8 +153,8 @@ const EXPECTED = {
     "DTSTART:<serve-390m>",
     "DTEND:<serve-375m>",
     "SUMMARY:🥩 Meat on",
-    "DESCRIPTION:Cold meat on the grate. Planned with Empirical BBQ (empiricalbb",
-    " q.com/cook-scheduler)",
+    "DESCRIPTION:Cold meat on the grate. Estimated 6h 00m to a 203°F finish. Pl",
+    " anned with Empirical BBQ (empiricalbbq.com/cook-scheduler)",
     "SEQUENCE:0",
     "BEGIN:VALARM",
     "ACTION:DISPLAY",
