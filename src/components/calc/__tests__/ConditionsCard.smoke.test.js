@@ -320,6 +320,52 @@ describe('compact strip under "Light the fire at"', () => {
   });
 });
 
+describe('cook time zone (one-way getter for the Add to calendar panel)', () => {
+  it('is null until a forecast has loaded, then the NWS zone of the place', async () => {
+    const { card } = await setup({ permission: 'prompt' });
+    expect(card.getTimeZone()).toBeNull();
+    $('condUseBtn').click();
+    await vi.waitFor(() => expect(card.getState().status).toBe('ready'));
+    expect(card.getTimeZone()).toBe('America/Denver');
+  });
+
+  it('is null for manual conditions (the browser zone is the panel fallback) and after an error', async () => {
+    const { card } = await setup();
+    $('condManualBtn').click();
+    type('condElev', 5200);
+    type('condLow', 38);
+    type('condHigh', 62);
+    $('condForm').dispatchEvent(new Event('submit', { cancelable: true }));
+    expect(card.getState().source).toBe('manual');
+    expect(card.getTimeZone()).toBeNull();
+
+    document.body.innerHTML = '';
+    const failed = await setup({ position: new ConditionsError('denied') });
+    $('condUseBtn').click();
+    await vi.waitFor(() => expect(failed.card.getState().status).toBe('error'));
+    expect(failed.card.getTimeZone()).toBeNull();
+  });
+
+  it('announces a change of zone once, with no payload, and takes nothing in', async () => {
+    document.body.innerHTML = '';
+    let heard = 0;
+    const listener = () => heard++;
+    document.addEventListener('ebq:cook-zone-changed', listener);
+    try {
+      const { card } = await setup({ permission: 'prompt' });
+      expect(heard).toBe(0);
+      $('condUseBtn').click();
+      await vi.waitFor(() => expect(card.getState().status).toBe('ready'));
+      expect(heard).toBe(1);
+      card.setWindow(WINDOW); // a re-render that does not change the zone
+      expect(heard).toBe(1);
+      expect(card.getTimeZone.length).toBe(0); // a getter: no arguments, so nothing can be written through it
+    } finally {
+      document.removeEventListener('ebq:cook-zone-changed', listener);
+    }
+  });
+});
+
 describe('error states', () => {
   const cases = [
     ['denied', 'Location is blocked for this site. Allow it in your browser settings, or enter conditions manually.', true],

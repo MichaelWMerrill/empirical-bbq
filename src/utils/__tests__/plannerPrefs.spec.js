@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { PREFS_KEY, COOKER_CLASSES, DEFAULT_PREFS, readPrefs, writePrefs } from '../plannerPrefs.js';
+import { PREFS_KEY, COOKER_CLASSES, CALENDARS, DEFAULT_PREFS, readPrefs, writePrefs } from '../plannerPrefs.js';
 
 function mem(initial) {
   const m = new Map(initial ? [[PREFS_KEY, initial]] : []);
@@ -7,9 +7,9 @@ function mem(initial) {
 }
 
 describe('plannerPrefs', () => {
-  test('defaults to Pellet, no blanket, and no auto-locate decision yet', () => {
-    expect(readPrefs(mem())).toEqual({ cooker: 'pellet', blanket: false, autoLocate: null });
-    expect(DEFAULT_PREFS).toEqual({ cooker: 'pellet', blanket: false, autoLocate: null });
+  test('defaults to Pellet, no blanket, no auto-locate decision yet, and Apple Calendar', () => {
+    expect(readPrefs(mem())).toEqual({ cooker: 'pellet', blanket: false, autoLocate: null, calendar: 'apple' });
+    expect(DEFAULT_PREFS).toEqual({ cooker: 'pellet', blanket: false, autoLocate: null, calendar: 'apple' });
   });
 
   test('offers exactly the five cooker classes', () => {
@@ -23,7 +23,24 @@ describe('plannerPrefs', () => {
     writePrefs({ autoLocate: true }, s);
     expect([...s.m.keys()]).toEqual(['ebq:cook-planner']);
     expect(JSON.parse(s.m.get(PREFS_KEY))).toEqual({ cooker: 'kamado', blanket: true, autoLocate: true });
-    expect(readPrefs(s)).toEqual({ cooker: 'kamado', blanket: true, autoLocate: true });
+    expect(readPrefs(s)).toEqual({ cooker: 'kamado', blanket: true, autoLocate: true, calendar: 'apple' });
+  });
+
+  test('offers exactly Apple, Google and Outlook, and remembers the last choice in the same key', () => {
+    expect(CALENDARS.map((c) => c.label)).toEqual(['Apple', 'Google', 'Outlook']);
+    const s = mem();
+    writePrefs({ cooker: 'offset' }, s);
+    writePrefs({ calendar: 'google' }, s);
+    expect(readPrefs(s)).toMatchObject({ cooker: 'offset', calendar: 'google' });
+    expect([...s.m.keys()]).toEqual(['ebq:cook-planner']);
+    expect(JSON.parse(s.m.get(PREFS_KEY))).toEqual({ cooker: 'offset', calendar: 'google' });
+  });
+
+  test('an invalid calendar is ignored and reads back as Apple', () => {
+    const s = mem();
+    writePrefs({ calendar: 'yahoo' }, s);
+    expect(readPrefs(s).calendar).toBe('apple');
+    expect(readPrefs(mem(JSON.stringify({ calendar: 3 }))).calendar).toBe('apple');
   });
 
   test('autoLocate is a tri-state: null until decided, then true or false', () => {

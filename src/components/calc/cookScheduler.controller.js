@@ -9,12 +9,14 @@ import { PROTEINS } from '../../utils/proteinRegistry.js';
 import { computeModel, FINISH_TEMP, dangerZoneHours, dangerZoneNote, cookDuration } from '../../utils/stallEngine.js';
 import { clampNum, enumParam, getParams, writeParams, wireCopyButton } from '../../utils/shareLink.js';
 import { buildMilestones, PREHEAT_HOURS as PREHEAT_HRS } from '../../utils/cookMilestones.js';
-import { buildCookSteps, buildIcs, planId } from '../../utils/ics.js';
 
+// `onPlan` is a second one-way, display-only hook for the Add to calendar panel: after each render it is called
+// with a frozen copy of the plan (the buildMilestones result and the inputs behind it) or null. Like
+// `onSchedule`, nothing flows back and a throwing listener never affects the schedule.
 // `onSchedule` is a one-way, display-only hook: after each render it is called with
 // the cook window ({ start: meat on, end: pull }) or null. Nothing flows back, and
 // a throwing listener never affects the schedule.
-export function initCookScheduler(protein = PROTEINS.beef_brisket, { onSchedule } = {}) {
+export function initCookScheduler(protein = PROTEINS.beef_brisket, { onSchedule, onPlan } = {}) {
   const thermal = protein.thermal;
   const finishTemp = thermal.finish_temp;
   const pitTemps = Object.keys(thermal.cook_temperatures); // registry-driven, per-protein
@@ -122,7 +124,7 @@ export function initCookScheduler(protein = PROTEINS.beef_brisket, { onSchedule 
       serve: { icon: '🍽️', title: 'Serve', sub: 'Slice against the grain and eat.' },
     };
     const milestones = ms.milestones.map(({ id, at }) => ({ ...copy[id], at }));
-    return { milestones, model: m, fireUp: ms.fireUp, serve: ms.serve, meatOn: ms.meatOn, pull: ms.pull };
+    return { milestones, model: m, fireUp: ms.fireUp, serve: ms.serve, meatOn: ms.meatOn, pull: ms.pull, plan: ms };
   }
 
   // Fixed 3-2-1 (or 2-2-1) method for ribs: unwrapped smoke → wrapped → sauced.
@@ -139,7 +141,7 @@ export function initCookScheduler(protein = PROTEINS.beef_brisket, { onSchedule 
       serve: { icon: '🍽️', title: 'Serve', sub: 'Cut between the bones and eat.' },
     };
     const milestones = ms.milestones.map(({ id, at }) => ({ ...copy[id], at }));
-    return { milestones, model: { totalTime: total }, fireUp: ms.fireUp, serve: ms.serve, meatOn: ms.meatOn, pull: ms.pull };
+    return { milestones, model: { totalTime: total }, fireUp: ms.fireUp, serve: ms.serve, meatOn: ms.meatOn, pull: ms.pull, plan: ms };
   }
 
   function render() {
@@ -173,6 +175,11 @@ export function initCookScheduler(protein = PROTEINS.beef_brisket, { onSchedule 
     } catch {
       /* display-only listener: never let it affect the schedule */
     }
+    try {
+      onPlan?.(sched ? planSnapshot(sched) : null);
+    } catch {
+      /* display-only listener: never let it affect the schedule */
+    }
     const timeline = $('timeline');
     const warn = $('warnBox');
 
@@ -181,14 +188,10 @@ export function initCookScheduler(protein = PROTEINS.beef_brisket, { onSchedule 
       $('totalSub').textContent = 'Choose when you want to eat to see your fire-up time.';
       warn.classList.add('hidden');
       timeline.replaceChildren();
-      $('icsBtn').disabled = true;
-      $('icsBtn').classList.add('opacity-40', 'cursor-not-allowed');
       updateShareUrl();
       return;
     }
 
-    $('icsBtn').disabled = false;
-    $('icsBtn').classList.remove('opacity-40', 'cursor-not-allowed');
     $('fireUpBig').textContent = fmtClock(sched.fireUp);
     $('totalSub').textContent = `≈ ${fmtHrsRange(sched.model.totalTime, bandFraction(state.wrap))} cook + ${fmtHrs(state.rest)} rest + ${fmtHrs(PREHEAT_HRS)} preheat`;
 
@@ -236,33 +239,37 @@ export function initCookScheduler(protein = PROTEINS.beef_brisket, { onSchedule 
     updateShareUrl();
   }
 
-  /* ---- .ics download ----
-   * The text comes from src/utils/ics.js. This button keeps the event set it always had (fire up, meat on,
-   * wrap, sauce, pull, serve); the review-first Add to calendar panel (Prompt 5) replaces it. */
   const pad = (n) => String(n).padStart(2, '0');
-  const LEGACY_STEP_IDS = new Set(['fire', 'on', 'wrap', 'sauce', 'pull', 'serve']);
 
-  function downloadIcs() {
-    const serve = state.serveAt ? new Date(state.serveAt) : null;
-    if (!serve || isNaN(serve.getTime())) return;
-    const duration = cookDuration(protein, engineState());
-    const plan = buildMilestones({ duration, inputs: milestoneInputs(), serve });
-    const steps = buildCookSteps(plan, { finishTemp, pitTemp: state.pitTemp, wrapTemp: state.wrapTemp, totalTime: duration.totalTime }, { includePrep: false }).filter((st) =>
-      LEGACY_STEP_IDS.has(st.id)
-    );
-    const id = planId(
-      { protein: protein.meta.id, weight: state.weight, cut: state.cut, pitTemp: state.pitTemp, wrap: state.wrap, wrapTemp: state.wrapTemp },
-      serve.toISOString()
-    );
-    const blob = new Blob([buildIcs(steps, { planId: id, now: Date.now() })], { type: 'text/calendar;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'empirical-bbq-cook-plan.ics';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  // A read-only copy of the plan and the inputs behind it, for display-only listeners. Dates are copied and the
+  // result is frozen, so a listener can neither alter the scheduler's own objects nor keep a live reference.
+  function planSnapshot(sched) {
+    const copy = (d) => (d instanceof Date ? new Date(d.getTime()) : d);
+    const ms = sched.plan;
+    return Object.freeze({
+      plan: Object.freeze({
+        method: ms.method,
+        serve: copy(ms.serve),
+        pull: copy(ms.pull),
+        meatOn: copy(ms.meatOn),
+        fireUp: copy(ms.fireUp),
+        stallOnset: copy(ms.stallOnset),
+        stallEnd: copy(ms.stallEnd),
+        milestones: Object.freeze(ms.milestones.map(({ id, at }) => Object.freeze({ id, at: copy(at) }))),
+      }),
+      inputs: Object.freeze({
+        protein: protein.meta.id,
+        slug: protein.meta.slug,
+        weight: state.weight,
+        cut: state.cut,
+        pitTemp: state.pitTemp,
+        wrap: state.wrap,
+        wrapTemp: state.wrapTemp,
+        finishTemp,
+        totalTime: sched.model.totalTime,
+        serveISO: sched.serve.toISOString(),
+      }),
+    });
   }
 
   /* ---- share links (validated) ---- */
@@ -427,7 +434,6 @@ export function initCookScheduler(protein = PROTEINS.beef_brisket, { onSchedule 
         render();
       });
     }
-    $('icsBtn').addEventListener('click', downloadIcs);
     wireCopyButton('shareBtn');
 
     render();

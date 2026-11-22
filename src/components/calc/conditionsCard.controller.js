@@ -80,7 +80,7 @@ async function defaultPermissionState() {
  * @param {object} [opts]
  * @param {Document} [opts.root]
  * @param {object} [opts.deps]  { getPosition, fetchConditions, manualConditions, permissionState, storage }
- * @returns {{ setWindow: (w: {start: Date|number, end: Date|number}|null) => void, getState: () => object, ready: Promise<void> }}
+ * @returns {{ setWindow: (w: {start: Date|number, end: Date|number}|null) => void, getState: () => object, getTimeZone: () => string|null, ready: Promise<void> }}
  */
 export function initConditionsCard({ root = document, deps = {} } = {}) {
   const d = {
@@ -92,7 +92,7 @@ export function initConditionsCard({ root = document, deps = {} } = {}) {
     ...deps,
   };
   const $ = (id) => root.getElementById(id);
-  if (!$('conditionsCard')) return { setWindow() {}, getState: () => ({}), ready: Promise.resolve() };
+  if (!$('conditionsCard')) return { setWindow() {}, getState: () => ({}), getTimeZone: () => null, ready: Promise.resolve() };
 
   const state = { status: 'idle', conditions: null, errorCode: null, window: null, formOpen: false, stopped: false };
 
@@ -208,6 +208,17 @@ export function initConditionsCard({ root = document, deps = {} } = {}) {
     details.classList.toggle('inline-flex', !(idle || state.status === 'loading'));
   }
 
+  // One-way read for display-only neighbors (the Add to calendar panel): the NWS time zone of the place the
+  // forecast was loaded for, or null (not loaded, manual conditions, or an error). Nothing is passed in.
+  const getTimeZone = () => (isReady() && state.conditions.source === 'nws' ? state.conditions.timeZone : null);
+  let lastZone = null;
+  function notifyZone() {
+    const zone = getTimeZone();
+    if (zone === lastZone) return;
+    lastZone = zone;
+    root.dispatchEvent(new CustomEvent('ebq:cook-zone-changed')); // no payload: listeners call getTimeZone()
+  }
+
   function render() {
     const { status, formOpen } = state;
     const loading = status === 'loading';
@@ -241,6 +252,7 @@ export function initConditionsCard({ root = document, deps = {} } = {}) {
     show($('condForm'), formOpen);
     renderBody();
     renderMini();
+    notifyZone();
   }
 
   /* ---- location flow ---- */
@@ -364,6 +376,7 @@ export function initConditionsCard({ root = document, deps = {} } = {}) {
       renderMini();
     },
     getState: () => ({ status: state.status, source: state.conditions?.source ?? null, errorCode: state.errorCode }),
+    getTimeZone,
     ready,
   };
 }

@@ -1,0 +1,68 @@
+---
+/*
+ * AddToCalendar: a review-first way to put the cook plan's steps in a calendar. The reader sees every step with
+ * its time and note, picks the ones they want, and adds them: Apple and Outlook get one .ics file, Google gets a
+ * link per step (its website cannot add several events from one click) plus an .ics download. Display only: it
+ * reads a frozen copy of the plan from the scheduler (onPlan) and the cook location's time zone from the conditions
+ * card (a one-way getter, used only for a one-line note when it differs from the device's), and writes to neither.
+ * Every time shown uses the device's zone, like the timeline. Nothing is sent anywhere and nothing is stored
+ * except the calendar choice. Mounted once in CookScheduler.astro, directly below the cook timeline. Client
+ * wiring: ./addToCalendar.controller.js.
+ *
+ * Same tokens and rules as the conditions card: dark text on flame-500 (6.7:1) rather than white (2.8:1),
+ * secondary text base-300 (8.0:1) or base-400 (4.6:1 on base-800), input borders base-400 (4.6:1), and every
+ * control at least 44px tall.
+ */
+import { CALENDARS } from '../../utils/plannerPrefs.js';
+
+const btnPrimary =
+  'min-h-[44px] rounded-lg bg-flame-500 hover:bg-flame-400 text-base-900 font-bold text-sm px-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-flame-400 focus-visible:ring-offset-2 focus-visible:ring-offset-base-800';
+const btnSecondary =
+  'min-h-[44px] rounded-lg bg-base-900 ring-1 ring-base-400 hover:bg-base-700 text-base-300 hover:text-white font-medium text-sm px-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-flame-400';
+---
+
+<section id="calendarPanel" aria-labelledby="calTitle" class="rounded-2xl bg-base-800/70 ring-1 ring-base-700 shadow-xl shadow-black/40 p-5 sm:p-6 space-y-5">
+  <div>
+    <h3 id="calTitle" class="text-sm font-semibold text-white">Add to calendar</h3>
+    <p class="mt-1 text-sm text-base-300 leading-relaxed">Review the steps, pick the ones you want, then add them.</p>
+  </div>
+
+  <p id="calEmpty" class="hidden text-sm text-base-300">Pick a serving time to see the steps.</p>
+
+  <div id="calBody" class="space-y-5">
+    <div>
+      <p id="calChoiceLegend" class="text-sm font-medium text-base-300 mb-2">Calendar</p>
+      <div id="calChoice" role="group" aria-labelledby="calChoiceLegend" class="grid grid-cols-3 gap-1.5">
+        {CALENDARS.map((c) => (
+          <button type="button" data-calendar={c.id} class="cal-choice-opt min-h-[44px] rounded-md px-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-flame-400" aria-pressed="false">{c.label}</button>
+        ))}
+      </div>
+    </div>
+
+    <div>
+      <p id="calZone" class="text-xs font-medium text-base-300 mb-1"></p>
+      <p id="calZoneNote" aria-live="polite" class="hidden mb-2 rounded-lg bg-base-900 ring-1 ring-base-700 px-3 py-2 text-xs leading-snug text-base-300"></p>
+      <ul id="calSteps" class="divide-y divide-base-700"></ul>
+      <p id="calCount" aria-live="polite" class="mt-2 text-xs text-base-300"></p>
+    </div>
+
+    <div>
+      <label for="calReminder" class="block text-sm font-medium text-base-300 mb-1">Reminder</label>
+      <select id="calReminder" class="w-full sm:w-auto min-h-[44px] rounded-lg bg-base-900 border border-base-400 px-3 text-sm text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-flame-400">
+        <option value="10" selected>10 minutes before</option>
+        <option value="0">At start time</option>
+        <option value="30">30 minutes before</option>
+      </select>
+    </div>
+
+    <div class="space-y-3">
+      <button id="calDownload" type="button" class={btnPrimary}>Download events (.ics)</button>
+      <div id="calGoogle" class="hidden space-y-2">
+        <button id="calDownloadAlt" type="button" class={btnSecondary}>Download .ics instead</button>
+        <p class="text-xs text-base-300 leading-snug">On a computer, Google Calendar can import the .ics file from Settings, Import &amp; export.</p>
+      </div>
+      <p id="calStatus" aria-live="polite" class="min-h-[1.25rem] text-sm text-base-300"></p>
+      <p id="calEstimateNote" class="text-xs text-base-300 leading-snug"></p>
+    </div>
+  </div>
+</section>
