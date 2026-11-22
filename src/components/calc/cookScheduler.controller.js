@@ -307,7 +307,9 @@ export function initCookScheduler(protein = PROTEINS.beef_brisket) {
   function maybeNoticeVersion(p) {
     const el = document.getElementById('versionNotice');
     if (!el) return;
-    if (!(p.has('pt') || p.has('pr') || p.has('w'))) return;
+    // Only a real share link carries cook settings (pt, and w for weight-based proteins). A visit with
+    // just ?pr= (the protein tabs link there, with no version) is not a shared link, so it never warns.
+    if (!(p.has('pt') || p.has('w'))) return;
     const shared = p.get('v');
     if (shared === protein.meta.version) return;
     const was = shared || 'v2026.1 or earlier';

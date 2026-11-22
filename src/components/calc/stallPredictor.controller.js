@@ -355,7 +355,9 @@ export function initStallPredictor(protein = PROTEINS.beef_brisket) {
   function maybeNoticeVersion(p) {
     const el = document.getElementById('versionNotice');
     if (!el) return;
-    const cameFromLink = p.has('pt') || p.has('pr') || p.has('w');
+    // Only a real share link carries cook settings (pt, and w for weight-based proteins). A visit with
+    // just ?pr= is not a shared link, so it never warns (same rule as the scheduler).
+    const cameFromLink = p.has('pt') || p.has('w');
     if (!cameFromLink) return;
     const shared = p.get('v');
     if (shared === protein.meta.version) return;
