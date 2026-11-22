@@ -13,7 +13,10 @@ import CookScheduler from '../CookScheduler.astro';
 import { mountComponent } from './mount.js';
 
 const NOTE =
-  'A faux-cambro (foil, towels and a dry cooler) slows cooling during the rest. Food safety guidance is to keep hot food at 140°F or above, so probe it before slicing, especially thinner cuts like ribs.';
+  'A faux-cambro (foil, towels and a dry cooler) slows cooling during the rest. Food safety guidance is to keep hot food above 140°F, so probe it before slicing, especially thinner cuts like ribs.';
+// FoodSafety.gov (HHS): "hot foods must stay hot (above 140°F (60°C))". The FAQ answer names it.
+const FAQ_ANSWER =
+  'The scheduler treats rest as an adjustable block between pulling the meat and serving. A faux-cambro (foil, towels and a dry cooler) slows cooling during the rest. FoodSafety.gov guidance is to keep hot food above 140°F, so probe it before slicing, especially thinner cuts like ribs.';
 
 // Phrases that would promise how long food stays hot or safe.
 const PROMISES = /\bsafely above\b|\bkeeps? (it|the meat|them)\b|\bfor (several|\d+) hours?\b|\bstays? (hot|above|safe)\b|\bhour or more keeps\b/i;
@@ -35,15 +38,17 @@ describe('scheduler FAQ answer about rest', () => {
   const src = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'pages', 'cook-scheduler.astro'), 'utf8');
   const answer = src.match(/q: 'How long should a brisket rest before slicing\?',\s*a: '([^']*)',/)?.[1];
 
-  it('says the same thing as the note, with no duration promise', () => {
+  it('is the approved text: names FoodSafety.gov, says "above 140°F", makes no duration promise', () => {
     expect(answer, 'FAQ entry found').toBeTruthy();
-    expect(answer).toContain(NOTE);
+    expect(answer).toBe(FAQ_ANSWER);
+    expect(answer).toContain('FoodSafety.gov');
     expect(answer).not.toMatch(PROMISES);
-    expect(answer).not.toMatch(/—/);
+    expect(answer).not.toMatch(/at or above/);
+    expect(answer).not.toMatch(/\u2014/);
     expect(answer).not.toMatch(/\bour\b/i); // first person singular only
   });
 
-  it('describes an hour or more as common practice, not a guarantee', () => {
-    expect(answer.startsWith('Common practice is an hour or more.')).toBe(true);
+  it('does not recommend a rest length (the rest slider covers duration)', () => {
+    expect(answer).not.toMatch(/common practice|at least an hour|an hour or more/i);
   });
 });
