@@ -14,6 +14,8 @@ import {
   googleCalendarUrl,
   formatStepTime,
   formatDuration,
+  zoneName,
+  icsFilename,
   ESTIMATE_NOTE,
   POINT_EVENT_MIN,
 } from '../ics.js';
@@ -712,6 +714,33 @@ describe('formatStepTime', () => {
     const serve = byId(steps, 'serve');
     expect(formatStepTime(serve, 'America/Los_Angeles', 'en-US')).toBe('Sun, Nov 22, 5:00 PM');
     expect(formatStepTime(serve, 'Asia/Kolkata', 'en-US')).toBe('Mon, Nov 23, 6:30 AM');
+  });
+});
+
+describe('zoneName', () => {
+  test.each([
+    ['America/Denver', 'Mountain Time'],
+    ['America/Los_Angeles', 'Pacific Time'],
+    ['America/New_York', 'Eastern Time'],
+  ])('%s is %s', (tz, name) => expect(zoneName(tz)).toBe(name));
+  test('falls back to the zone id when it is not recognized', () => {
+    expect(zoneName('Not/AZone')).toBe('Not/AZone');
+  });
+});
+
+describe('icsFilename', () => {
+  const serve = new Date('2026-11-23T01:00:00Z'); // Sunday 6:00 PM in Denver, Monday 6:30 AM in Kolkata
+  test('is the protein slug and the serve date as it reads in the cook zone', () => {
+    expect(icsFilename('pork-shoulder', serve, 'America/Denver')).toBe('empirical-bbq-pork-shoulder-2026-11-22.ics');
+    expect(icsFilename('pork-shoulder', serve, 'Asia/Kolkata')).toBe('empirical-bbq-pork-shoulder-2026-11-23.ics');
+  });
+  test('keeps the name safe: lower case, letters, digits and hyphens only', () => {
+    expect(icsFilename('Pork Shoulder!', serve, 'UTC')).toBe('empirical-bbq-pork-shoulder-2026-11-23.ics');
+    expect(icsFilename('', serve, 'UTC')).toBe('empirical-bbq-cook-2026-11-23.ics');
+    expect(icsFilename(undefined, serve, 'UTC')).toBe('empirical-bbq-cook-2026-11-23.ics');
+  });
+  test('falls back to the UTC date for an unknown zone', () => {
+    expect(icsFilename('ribs', serve, 'Not/AZone')).toBe('empirical-bbq-ribs-2026-11-23.ics');
   });
 });
 

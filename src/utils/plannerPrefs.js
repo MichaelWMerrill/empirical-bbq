@@ -2,7 +2,8 @@
  * Planner preferences remembered on this device (localStorage), under ONE
  * namespaced key: the cooker class and insulation blanket flag from the cook
  * conditions card (display-only; nothing reads them into the cook-time model),
- * and autoLocate, a boolean opt-in for re-detecting the location on load.
+ * and autoLocate, a boolean opt-in for re-detecting the location on load, and the last calendar
+ * chosen in the Add to calendar panel (apple, google or outlook).
  * autoLocate is true or false once the user has decided, and null before that.
  * Only booleans and the cooker id are stored here, never coordinates.
  *
@@ -21,9 +22,16 @@ export const COOKER_CLASSES = [
   { id: 'electric', label: 'Electric' },
 ];
 
-export const DEFAULT_PREFS = { cooker: 'pellet', blanket: false, autoLocate: null };
+export const CALENDARS = [
+  { id: 'apple', label: 'Apple' },
+  { id: 'google', label: 'Google' },
+  { id: 'outlook', label: 'Outlook' },
+];
+
+export const DEFAULT_PREFS = { cooker: 'pellet', blanket: false, autoLocate: null, calendar: 'apple' };
 
 const COOKER_IDS = COOKER_CLASSES.map((c) => c.id);
+const CALENDAR_IDS = CALENDARS.map((c) => c.id);
 
 function defaultStorage() {
   try {
@@ -50,15 +58,17 @@ export function readPrefs(storage = defaultStorage()) {
     cooker: COOKER_IDS.includes(raw.cooker) ? raw.cooker : DEFAULT_PREFS.cooker,
     blanket: raw.blanket === true,
     autoLocate: typeof raw.autoLocate === 'boolean' ? raw.autoLocate : null,
+    calendar: CALENDAR_IDS.includes(raw.calendar) ? raw.calendar : DEFAULT_PREFS.calendar,
   };
 }
 
-/** Merge a patch ({ cooker?, blanket?, autoLocate? }) into storage. Invalid values are ignored. */
+/** Merge a patch ({ cooker?, blanket?, autoLocate?, calendar? }) into storage. Invalid values are ignored. */
 export function writePrefs(patch, storage = defaultStorage()) {
   const next = { ...readRaw(storage) };
   if (patch && COOKER_IDS.includes(patch.cooker)) next.cooker = patch.cooker;
   if (patch && typeof patch.blanket === 'boolean') next.blanket = patch.blanket;
   if (patch && typeof patch.autoLocate === 'boolean') next.autoLocate = patch.autoLocate;
+  if (patch && CALENDAR_IDS.includes(patch.calendar)) next.calendar = patch.calendar;
   try {
     storage?.setItem(PREFS_KEY, JSON.stringify(next));
   } catch {

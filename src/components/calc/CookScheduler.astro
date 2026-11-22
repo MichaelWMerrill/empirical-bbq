@@ -11,6 +11,7 @@ import ProteinSelector from './ProteinSelector.astro';
 import GearModule from './GearModule.astro';
 import ConditionsCard from './ConditionsCard.astro';
 import ConditionsStrip from './ConditionsStrip.astro';
+import AddToCalendar from './AddToCalendar.astro';
 import SiteFooter from '../SiteFooter.astro';
 
 export interface Props {
@@ -175,13 +176,11 @@ const defaultVisible = new Set(['weight']);
           <div class="rounded-2xl bg-base-800/70 ring-1 ring-base-700 shadow-xl shadow-black/40 p-5 sm:p-6">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-sm font-semibold text-white">Cook Timeline</h3>
-              <button id="icsBtn" type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-flame-600 hover:bg-flame-500 text-white font-bold text-xs px-3.5 py-2 transition-colors">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                Add to calendar (.ics)
-              </button>
             </div>
             <ol id="timeline" class="relative border-l border-base-700 ml-2 space-y-6"></ol>
           </div>
+
+          <AddToCalendar />
 
           <ConditionsCard />
 
@@ -283,6 +282,7 @@ const defaultVisible = new Set(['weight']);
 <script>
   import { initCookScheduler } from './cookScheduler.controller.js';
   import { initConditionsCard } from './conditionsCard.controller.js';
+  import { initAddToCalendar } from './addToCalendar.controller.js';
   import { PROTEINS } from '../../utils/proteinRegistry.js';
   import { proteinParam } from '../../utils/shareLink.js';
   document.addEventListener('DOMContentLoaded', () => {
@@ -293,8 +293,11 @@ const defaultVisible = new Set(['weight']);
       /* ignore */
     }
     const id = proteinParam(raw, Object.keys(PROTEINS));
-    // The card only ever receives the cook window (meat on to pull); nothing flows back.
+    // Display-only neighbors. The conditions card receives the cook window (meat on to pull); the Add to calendar
+    // panel receives a frozen copy of the plan and reads the cook's time zone through the card's one-way getter.
+    // Nothing flows back into the scheduler, and the panel never writes to the card.
     const conditionsCard = initConditionsCard();
-    initCookScheduler(PROTEINS[id], { onSchedule: conditionsCard.setWindow });
+    const calendar = initAddToCalendar({ getTimeZone: conditionsCard.getTimeZone });
+    initCookScheduler(PROTEINS[id], { onSchedule: conditionsCard.setWindow, onPlan: calendar.setPlan });
   });
 </script>
