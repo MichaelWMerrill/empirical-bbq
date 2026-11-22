@@ -8,7 +8,7 @@ import { windowSummary, boilingPointF } from '../../utils/conditions.js';
 
 const HOUR_MS = 3600 * 1000;
 
-export const NOT_MODELED_NOTE = 'Cloud cover is shown, not modeled.';
+export const SKY_NOTE = 'Sky is shown for reference only.';
 export const BOIL_NOTE = 'Based on elevation only.';
 export const WIND_NOTE = 'Uses the windier end when the forecast gives a range.';
 export const PLANNING_LINE = "Shown for planning. The time estimate doesn't use these conditions yet.";
@@ -145,7 +145,7 @@ export function buildConditionsView(conditions, cookWindow) {
   if (!manual) {
     const periods = hourlyInWindow(conditions, startMs, endMs);
     const sky = mostCommon(periods.map((p) => p.sky));
-    if (sky) rows.push({ key: 'sky', label: 'Sky', value: sky, note: NOT_MODELED_NOTE });
+    if (sky) rows.push({ key: 'sky', label: 'Sky', value: sky, note: SKY_NOTE });
     if (periods.length) view.strip = { label: zoneLabel(conditions.timeZone, new Date(startMs)), cells: stripCells(periods, conditions.timeZone) };
     view.note = missingNote(s);
   }

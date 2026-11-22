@@ -103,7 +103,7 @@ describe('location flow', () => {
     expect(rows()).toEqual({ elevation: '4,797 ft', boil: '203°F', temp: '44 to 46°F', wind: '1 mph average', dew: '27°F average', sky: 'Mostly Cloudy' });
     expect(text('condStripLabel')).toBe('Times in Mountain Time');
     expect(document.querySelectorAll('#condStripGrid li')).toHaveLength(3);
-    expect(document.querySelector('#condRows [data-row=sky]').textContent).toContain('Cloud cover is shown, not modeled.');
+    expect(document.querySelector('#condRows [data-row=sky]').textContent).toContain('Sky is shown for reference only.');
     expect(hidden('condCredit')).toBe(false);
     expect(text('condPlanningLine')).toBe("Shown for planning. The time estimate doesn't use these conditions yet.");
     expect(text('condCredit')).toBe('Forecast: National Weather Service');

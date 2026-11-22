@@ -2,7 +2,7 @@ import { describe, test, expect, vi } from 'vitest';
 import pointsFixture from '../../../utils/__tests__/fixtures/nws-points.json';
 import hourlyFixture from '../../../utils/__tests__/fixtures/nws-hourly.json';
 import { fetchConditions, manualConditions } from '../../../utils/conditions.js';
-import { buildConditionsView, zoneLabel, NO_WINDOW_NOTE, NOT_MODELED_NOTE, SOURCE_CREDIT, PLANNING_LINE } from '../conditionsCard.view.js';
+import { buildConditionsView, zoneLabel, NO_WINDOW_NOTE, SKY_NOTE, SOURCE_CREDIT, PLANNING_LINE } from '../conditionsCard.view.js';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const jsonRes = (body) => ({ ok: true, status: 200, json: async () => body });
@@ -39,10 +39,10 @@ describe('buildConditionsView: auto-detected', () => {
     expect(manual.rows.find((r) => r.key === 'wind').note).toBeUndefined();
   });
 
-  test('the sky row carries "Cloud cover is shown, not modeled."', async () => {
+  test('the sky row carries "Sky is shown for reference only."', async () => {
     const v = buildConditionsView(await nws(), win('14:00', '17:00'));
-    expect(v.rows.find((r) => r.key === 'sky').note).toBe(NOT_MODELED_NOTE);
-    expect(NOT_MODELED_NOTE).toBe('Cloud cover is shown, not modeled.');
+    expect(v.rows.find((r) => r.key === 'sky').note).toBe(SKY_NOTE);
+    expect(SKY_NOTE).toBe('Sky is shown for reference only.');
   });
 
   test('the gust row is hidden when the feed reports no gusts, and shown when it does', async () => {
