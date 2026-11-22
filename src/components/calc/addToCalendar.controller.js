@@ -26,7 +26,7 @@ import { readPrefs, writePrefs } from '../../utils/plannerPrefs.js';
 
 export const MESSAGES = {
   none: 'Pick at least one step',
-  downloaded: 'Downloaded. Open the file to add the events.',
+  downloaded: "Downloaded. If your calendar doesn't open on its own, open the file to add the events.",
 };
 
 /**

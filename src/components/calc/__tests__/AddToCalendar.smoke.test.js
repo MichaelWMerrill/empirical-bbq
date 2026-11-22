@@ -318,11 +318,11 @@ describe('download', () => {
     expect((await downloaded(download)).filename).toBe(`empirical-bbq-pork-shoulder-${dateInZone}.ics`);
   });
 
-  it('afterwards says "Downloaded. Open the file to add the events." and offers no Undo', async () => {
+  it('afterwards says to open the file only if the calendar does not open on its own, and offers no Undo', async () => {
     const { download } = await setup();
     $('calDownload').click();
     expect(download).toHaveBeenCalledTimes(1);
-    expect(text('calStatus')).toBe('Downloaded. Open the file to add the events.');
+    expect(text('calStatus')).toBe("Downloaded. If your calendar doesn't open on its own, open the file to add the events.");
     expect(text('calStatus')).toBe(MESSAGES.downloaded);
     expect([...document.querySelectorAll('#calendarPanel button, #calendarPanel a')].some((el) => /undo/i.test(el.textContent))).toBe(false);
     toggle('fire'); // changing the selection makes the earlier message stale
@@ -352,7 +352,7 @@ describe('download', () => {
   it('a new plan clears an old "Downloaded" message', async () => {
     const { sched } = await setup();
     $('calDownload').click();
-    expect(text('calStatus')).toBe('Downloaded. Open the file to add the events.');
+    expect(text('calStatus')).toBe("Downloaded. If your calendar doesn't open on its own, open the file to add the events.");
     sched.state.weight = 10;
     sched.render();
     expect(text('calStatus')).toBe('');
@@ -432,7 +432,7 @@ describe('Google', () => {
     expect($('calGoogle').textContent).toContain('On a computer, Google Calendar can import the .ics file from Settings, Import & export.');
     $('calDownloadAlt').click();
     expect(download).toHaveBeenCalledTimes(1);
-    expect(text('calStatus')).toBe('Downloaded. Open the file to add the events.');
+    expect(text('calStatus')).toBe("Downloaded. If your calendar doesn't open on its own, open the file to add the events.");
   });
 
   it('with nothing checked there are no links, and "Download .ics instead" says to pick a step', async () => {
