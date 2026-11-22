@@ -3,10 +3,11 @@
  * AddToCalendar: a review-first way to put the cook plan's steps in a calendar. The reader sees every step with
  * its time and note, picks the ones they want, and adds them: Apple and Outlook get one .ics file, Google gets a
  * link per step (its website cannot add several events from one click) plus an .ics download. Display only: it
- * reads a frozen copy of the plan from the scheduler (onPlan) and the cook's time zone from the conditions card
- * (a one-way getter), and writes to neither. Nothing is sent anywhere and nothing is stored except the calendar
- * choice. Mounted once in CookScheduler.astro, directly below the cook timeline. Client wiring:
- * ./addToCalendar.controller.js.
+ * reads a frozen copy of the plan from the scheduler (onPlan) and the cook location's time zone from the conditions
+ * card (a one-way getter, used only for a one-line note when it differs from the device's), and writes to neither.
+ * Every time shown uses the device's zone, like the timeline. Nothing is sent anywhere and nothing is stored
+ * except the calendar choice. Mounted once in CookScheduler.astro, directly below the cook timeline. Client
+ * wiring: ./addToCalendar.controller.js.
  *
  * Same tokens and rules as the conditions card: dark text on flame-500 (6.7:1) rather than white (2.8:1),
  * secondary text base-300 (8.0:1) or base-400 (4.6:1 on base-800), input borders base-400 (4.6:1), and every
@@ -40,6 +41,7 @@ const btnSecondary =
 
     <div>
       <p id="calZone" class="text-xs font-medium text-base-300 mb-1"></p>
+      <p id="calZoneNote" aria-live="polite" class="hidden mb-2 rounded-lg bg-base-900 ring-1 ring-base-700 px-3 py-2 text-xs leading-snug text-base-300"></p>
       <ul id="calSteps" class="divide-y divide-base-700"></ul>
       <p id="calCount" aria-live="polite" class="mt-2 text-xs text-base-300"></p>
     </div>
@@ -57,7 +59,7 @@ const btnSecondary =
       <button id="calDownload" type="button" class={btnPrimary}>Download events (.ics)</button>
       <div id="calGoogle" class="hidden space-y-2">
         <button id="calDownloadAlt" type="button" class={btnSecondary}>Download .ics instead</button>
-        <p class="text-xs text-base-300 leading-snug">Google can import the .ics file from Settings, Import and export.</p>
+        <p class="text-xs text-base-300 leading-snug">On a computer, Google Calendar can import the .ics file from Settings, Import &amp; export.</p>
       </div>
       <p id="calStatus" aria-live="polite" class="min-h-[1.25rem] text-sm text-base-300"></p>
       <p id="calEstimateNote" class="text-xs text-base-300 leading-snug"></p>

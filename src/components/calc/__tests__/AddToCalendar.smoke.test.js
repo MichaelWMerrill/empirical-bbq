@@ -18,7 +18,7 @@ import hourlyFixture from '../../../utils/__tests__/fixtures/nws-hourly.json';
 import { fetchConditions } from '../../../utils/conditions.js';
 import { PREFS_KEY } from '../../../utils/plannerPrefs.js';
 import { initCookScheduler } from '../cookScheduler.controller.js';
-import { initAddToCalendar, estimateNote, MESSAGES } from '../addToCalendar.controller.js';
+import { initAddToCalendar, estimateNote, zoneNote, MESSAGES } from '../addToCalendar.controller.js';
 import { initConditionsCard } from '../conditionsCard.controller.js';
 
 const SERVE = '2026-07-18T18:00'; // local wall time; every expectation below is relative to it, so no time zone assumption
@@ -45,13 +45,13 @@ const fmt = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 const unfold = (t) => t.replace(/\r\n[ \t]/g, '');
 const prop = (ics, key) => unfold(ics).split('\r\n').filter((l) => l.startsWith(`${key}:`)).map((l) => l.slice(key.length + 1));
 
-async function setup({ proteinId = 'pork_shoulder', state = PORK, zone = null, prefs, serve = SERVE, plan = true } = {}) {
+async function setup({ proteinId = 'pork_shoulder', state = PORK, zone = null, browserZone = MACHINE_ZONE, prefs, serve = SERVE, plan = true } = {}) {
   document.body.innerHTML = '';
   if (prefs) localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
   await mountComponent(CookScheduler);
   const zoneRef = { value: zone };
   const download = vi.fn();
-  const cal = initAddToCalendar({ getTimeZone: () => zoneRef.value, deps: { download, now: () => NOW, browserZone: () => MACHINE_ZONE } });
+  const cal = initAddToCalendar({ getTimeZone: () => zoneRef.value, deps: { download, now: () => NOW, browserZone: () => browserZone } });
   const protein = PROTEINS[proteinId];
   const sched = initCookScheduler(protein, plan ? { onPlan: cal.setPlan } : {});
   Object.assign(sched.state, state, { serveAt: serve });
@@ -146,20 +146,87 @@ describe('the step list', () => {
   });
 });
 
-describe('the time zone label', () => {
-  it('uses the browser zone when conditions have not loaded', async () => {
-    await setup();
-    expect(text('calZone')).toMatch(/^Times in .+, where the cook is$/);
+describe('the time zone: the device zone, like the timeline', () => {
+  const LA = 'America/Los_Angeles';
+  const note = () => $('calZoneNote');
+
+  it('labels the times with the device zone and says so', async () => {
+    await setup({ browserZone: LA });
+    expect(text('calZone')).toBe("Times in Pacific Time, this device's time zone");
+    expect(hidden('calZoneNote')).toBe(true); // no cook zone known: nothing to add
   });
 
-  it('uses the zone it is given, names it, and shows the times in it', async () => {
-    const { protein } = await setup({ zone: 'America/Denver' });
-    expect(text('calZone')).toBe('Times in Mountain Time, where the cook is');
-    const serve = expectedSteps(protein, PORK, 'America/Denver').find((s) => s.id === 'serve');
-    expect(document.querySelector('[data-time="serve"]').textContent).toBe(formatStepTime(serve, 'America/Denver'));
+  it('shows every time in the device zone', async () => {
+    const { protein } = await setup({ browserZone: LA });
+    for (const s of expectedSteps(protein, PORK, LA)) {
+      expect(document.querySelector(`[data-time="${s.id}"]`).textContent, s.id).toBe(formatStepTime(s, LA));
+    }
   });
 
-  it('follows the conditions card: when a forecast loads, the label and times move to the NWS zone', async () => {
+  it('with a different cook zone, adds one line and still uses the device zone for every time', async () => {
+    const { protein } = await setup({ browserZone: LA, zone: 'America/Denver' });
+    expect(hidden('calZoneNote')).toBe(false);
+    expect(text('calZoneNote')).toBe(
+      'This device is on Pacific Time, but your cook location is on Mountain Time. Times here, and the serve time you entered, use Pacific Time.'
+    );
+    expect(note().getAttribute('aria-live')).toBe('polite');
+    expect(text('calZone')).toBe("Times in Pacific Time, this device's time zone"); // the label is unchanged
+    for (const s of expectedSteps(protein, PORK, LA)) {
+      expect(document.querySelector(`[data-time="${s.id}"]`).textContent, s.id).toBe(formatStepTime(s, LA));
+    }
+    // and the times are not the cook zone's
+    const denverServe = expectedSteps(protein, PORK, 'America/Denver').find((s) => s.id === 'serve');
+    expect(document.querySelector('[data-time="serve"]').textContent).not.toBe(formatStepTime(denverServe, 'America/Denver'));
+  });
+
+  it('the downloaded file and the Google links do not depend on the cook zone (they are absolute times)', async () => {
+    const withCook = await setup({ browserZone: LA, zone: 'America/Denver' });
+    $('calDownload').click();
+    const a = prop((await downloaded(withCook.download)).text, 'DTSTART');
+    const without = await setup({ browserZone: LA, zone: null });
+    $('calDownload').click();
+    const b = prop((await downloaded(without.download)).text, 'DTSTART');
+    expect(a).toEqual(b);
+  });
+
+  it('says nothing when the cook zone reads the same clock as the device (same zone, or the same offset all year)', async () => {
+    await setup({ browserZone: LA, zone: LA });
+    expect(hidden('calZoneNote')).toBe(true);
+    await setup({ browserZone: LA, zone: 'America/Vancouver' });
+    expect(hidden('calZoneNote')).toBe(true);
+  });
+
+  it('tells Phoenix from Denver in summer (different offsets, different names)', async () => {
+    await setup({ browserZone: 'America/Phoenix', zone: 'America/Denver' });
+    expect(text('calZoneNote')).toBe(
+      'This device is on Mountain Standard Time, but your cook location is on Mountain Time. Times here, and the serve time you entered, use Mountain Standard Time.'
+    );
+  });
+
+  it('never names the same zone twice: across every zone the runtime knows, zones that read differently have different names', () => {
+    const at = new Date('2026-07-18T18:00:00Z');
+    const zones = Intl.supportedValuesOf('timeZone');
+    const name = (tz) => new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'longGeneric' }).formatToParts(at).find((p) => p.type === 'timeZoneName').value;
+    for (const a of ['America/Los_Angeles', 'America/Denver', 'Asia/Kolkata', 'Europe/London', 'Pacific/Auckland']) {
+      for (const b of zones) if (zoneNote(a, b, at)) expect(name(a), `${a} vs ${b}`).not.toBe(name(b));
+    }
+  });
+
+  it('follows the cook zone coming and going: the line appears and disappears, the times never move', async () => {
+    const { zoneRef, protein } = await setup({ browserZone: LA });
+    const before = [...document.querySelectorAll('[data-time]')].map((e) => e.textContent);
+    zoneRef.value = 'America/New_York';
+    document.dispatchEvent(new CustomEvent('ebq:cook-zone-changed'));
+    expect(hidden('calZoneNote')).toBe(false);
+    expect(text('calZoneNote')).toContain('your cook location is on Eastern Time');
+    expect([...document.querySelectorAll('[data-time]')].map((e) => e.textContent)).toEqual(before);
+    zoneRef.value = null;
+    document.dispatchEvent(new CustomEvent('ebq:cook-zone-changed'));
+    expect(hidden('calZoneNote')).toBe(true);
+    expect(expectedSteps(protein, PORK, LA).length).toBeGreaterThan(0);
+  });
+
+  it('works with the real conditions card: a forecast for another zone adds the line and moves no time', async () => {
     document.body.innerHTML = '';
     await mountComponent(CookScheduler);
     const jsonRes = (b) => ({ ok: true, status: 200, json: async () => b });
@@ -171,20 +238,47 @@ describe('the time zone label', () => {
     const card = initConditionsCard({
       deps: { getPosition: async () => ({ lat: 40.13, lon: -111.58 }), fetchConditions: async () => conditions, permissionState: async () => 'prompt' },
     });
-    const cal = initAddToCalendar({ getTimeZone: card.getTimeZone, deps: { download: vi.fn(), now: () => NOW, browserZone: () => 'America/Los_Angeles' } });
+    const cal = initAddToCalendar({ getTimeZone: card.getTimeZone, deps: { download: vi.fn(), now: () => NOW, browserZone: () => LA } });
     const sched = initCookScheduler(PROTEINS.pork_shoulder, { onSchedule: card.setWindow, onPlan: cal.setPlan });
     Object.assign(sched.state, PORK, { serveAt: SERVE });
     sched.render();
-    expect(text('calZone')).toBe('Times in Pacific Time, where the cook is'); // the browser zone, before a place is known
-    const before = document.querySelector('[data-time="serve"]').textContent;
+    expect(hidden('calZoneNote')).toBe(true);
+    const before = [...document.querySelectorAll('[data-time]')].map((e) => e.textContent);
 
     $('condUseBtn').click();
     await vi.waitFor(() => expect(card.getState().status).toBe('ready'));
-    expect(text('calZone')).toBe('Times in Mountain Time, where the cook is');
-    expect(document.querySelector('[data-time="serve"]').textContent).not.toBe(before);
-    // and the panel wrote nothing to the card: the card's own state is exactly what it loaded
+    expect(text('calZoneNote')).toBe(
+      'This device is on Pacific Time, but your cook location is on Mountain Time. Times here, and the serve time you entered, use Pacific Time.'
+    );
+    expect(text('calZone')).toBe("Times in Pacific Time, this device's time zone");
+    expect([...document.querySelectorAll('[data-time]')].map((e) => e.textContent)).toEqual(before);
+    // the panel wrote nothing to the card: its own state is exactly what it loaded
     expect(card.getState()).toEqual({ status: 'ready', source: 'nws', errorCode: null });
   });
+});
+
+describe('zoneNote', () => {
+  const at = new Date('2026-07-18T18:00:00Z');
+  test_each();
+  function test_each() {
+    it('is empty without a cook zone, and for zones that read the same', () => {
+      expect(zoneNote('America/Los_Angeles', null, at)).toBe('');
+      expect(zoneNote(null, 'America/Denver', at)).toBe('');
+      expect(zoneNote('America/Los_Angeles', 'America/Los_Angeles', at)).toBe('');
+      expect(zoneNote('America/Los_Angeles', 'America/Vancouver', at)).toBe('');
+    });
+    it('is empty for a zone it cannot compare, rather than a wrong warning', () => {
+      expect(zoneNote('America/Los_Angeles', 'Not/AZone', at)).toBe('');
+    });
+    it('names both zones and which one the times use', () => {
+      expect(zoneNote('America/Los_Angeles', 'Asia/Kolkata', at)).toBe(
+        'This device is on Pacific Time, but your cook location is on India Standard Time. Times here, and the serve time you entered, use Pacific Time.'
+      );
+    });
+    it('has no em dash', () => {
+      expect(zoneNote('America/Los_Angeles', 'America/New_York', at)).not.toMatch(/\u2014/);
+    });
+  }
 });
 
 describe('download', () => {
@@ -215,8 +309,8 @@ describe('download', () => {
     expect(file.text.endsWith('\r\n')).toBe(true);
   });
 
-  it('is named for the protein and the serve date in the cook zone', async () => {
-    const { download } = await setup({ zone: 'America/Denver' });
+  it('is named for the protein and the serve date in the device zone', async () => {
+    const { download } = await setup({ browserZone: 'America/Denver', zone: 'Asia/Kolkata' });
     $('calDownload').click();
     expect((await downloaded(download)).filename).toBe(icsFilename('pork-shoulder', SERVE_DATE, 'America/Denver'));
     expect((await downloaded(download)).filename).toMatch(/^empirical-bbq-pork-shoulder-\d{4}-\d{2}-\d{2}\.ics$/);
@@ -335,7 +429,7 @@ describe('Google', () => {
     expect(hidden('calDownload')).toBe(true);
     expect(hidden('calGoogle')).toBe(false);
     expect(text('calDownloadAlt')).toBe('Download .ics instead');
-    expect($('calGoogle').textContent).toContain('Google can import the .ics file from Settings, Import and export.');
+    expect($('calGoogle').textContent).toContain('On a computer, Google Calendar can import the .ics file from Settings, Import & export.');
     $('calDownloadAlt').click();
     expect(download).toHaveBeenCalledTimes(1);
     expect(text('calStatus')).toBe('Downloaded. Open the file to add the events.');
@@ -416,18 +510,19 @@ describe('what is stored', () => {
 describe('the estimate line', () => {
   it('names the estimate steps that are in the list', async () => {
     await setup();
-    expect(text('calEstimateNote')).toBe('Stall, wrap and pull times are estimates because they start at an internal temperature.');
+    expect(text('calEstimateNote')).toBe('Wrap and pull times are estimates, because they depend on when the meat reaches a temperature.');
     await setup({ proteinId: 'pork_ribs', state: RIBS });
-    expect(text('calEstimateNote')).toBe('The pull time is an estimate because it starts at an internal temperature.');
+    expect(text('calEstimateNote')).toBe('The pull time is an estimate, because it depends on when the meat reaches a temperature.');
   });
 
-  it('estimateNote: none, one, two, three', () => {
+  it('estimateNote: none, one, two; the stall row is flagged by its own "~" and note, not named here', () => {
     const steps = (...ids) => ids.map((id) => ({ id, estimate: true }));
     expect(estimateNote([])).toBe('');
     expect(estimateNote([{ id: 'pull', estimate: false }])).toBe('');
-    expect(estimateNote(steps('pull'))).toBe('The pull time is an estimate because it starts at an internal temperature.');
-    expect(estimateNote(steps('wrap', 'pull'))).toBe('Wrap and pull times are estimates because they start at an internal temperature.');
-    expect(estimateNote(steps('stall', 'wrap', 'pull'))).toBe('Stall, wrap and pull times are estimates because they start at an internal temperature.');
+    expect(estimateNote(steps('stall'))).toBe('');
+    expect(estimateNote(steps('pull'))).toBe('The pull time is an estimate, because it depends on when the meat reaches a temperature.');
+    expect(estimateNote(steps('wrap', 'pull'))).toBe('Wrap and pull times are estimates, because they depend on when the meat reaches a temperature.');
+    expect(estimateNote(steps('stall', 'wrap', 'pull'))).toBe('Wrap and pull times are estimates, because they depend on when the meat reaches a temperature.');
   });
 });
 

@@ -5,9 +5,13 @@
  * Inputs:
  *   - setPlan(snapshot): the scheduler's onPlan hook, a frozen copy of the plan and the inputs behind it
  *     ({ plan, inputs }), or null when there is no serving time yet.
- *   - getTimeZone(): a one-way getter for the cook's time zone (the conditions card's NWS zone when it has
- *     loaded, else null). When it changes the card dispatches "ebq:cook-zone-changed" and this panel reads
- *     the getter again. The browser's own zone is the fallback.
+ *   - getTimeZone(): a one-way getter for the cook location's time zone (the conditions card's NWS zone when it
+ *     has loaded, else null). When it changes the card dispatches "ebq:cook-zone-changed" and this panel reads
+ *     the getter again.
+ *
+ * Time zone: every time here, the file name's date and the prep reminder use the DEVICE's zone, the same zone the
+ * timeline and the serve time the reader typed use, so the two cards never disagree. The cook location's zone is
+ * only used to tell the reader when it differs (one line), never to change a time.
  *
  * Everything runs in the browser. There are no network calls and no server. The only thing stored is the
  * calendar choice (apple, google, outlook), in the shared planner key. The reminder, the checkboxes and the
@@ -17,7 +21,7 @@
  * Deliberately no import of conditions.js or the conditions card: the isolation test keeps conditions out of
  * everything that is not the card.
  */
-import { buildCookSteps, buildIcs, planId, googleCalendarUrl, formatStepTime, zoneName, icsFilename } from '../../utils/ics.js';
+import { buildCookSteps, buildIcs, planId, googleCalendarUrl, formatStepTime, zoneName, zonesDiffer, icsFilename } from '../../utils/ics.js';
 import { readPrefs, writePrefs } from '../../utils/plannerPrefs.js';
 
 export const MESSAGES = {
@@ -25,16 +29,27 @@ export const MESSAGES = {
   downloaded: 'Downloaded. Open the file to add the events.',
 };
 
-// Steps whose time is a guess because they start at an internal temperature, in timeline order.
-const ESTIMATE_ORDER = ['stall', 'wrap', 'pull'];
+/**
+ * The one line shown when the cook location is on a different clock from the device, or '' when there is nothing to
+ * say (no cook zone yet, or the two read the same at the serve time). Zones that read differently have different
+ * long names (checked across every zone the runtime knows), so the sentence never names the same zone twice.
+ */
+export function zoneNote(deviceZone, cookZone, at) {
+  if (!cookZone || !deviceZone || !zonesDiffer(deviceZone, cookZone, at)) return '';
+  const device = zoneName(deviceZone, at);
+  const cook = zoneName(cookZone, at);
+  return `This device is on ${device}, but your cook location is on ${cook}. Times here, and the serve time you entered, use ${device}.`;
+}
+
+// The steps the line under the buttons names, in timeline order. The stall step is flagged by its own "~" and note.
+const ESTIMATE_ORDER = ['wrap', 'pull'];
 
 /** The one line under the buttons, built from the estimate steps actually in the list. */
 export function estimateNote(steps) {
   const names = ESTIMATE_ORDER.filter((id) => steps.some((s) => s.id === id && s.estimate));
   if (!names.length) return '';
-  if (names.length === 1) return `The ${names[0]} time is an estimate because it starts at an internal temperature.`;
-  const list = names.length === 2 ? `${names[0]} and ${names[1]}` : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
-  return `${list[0].toUpperCase()}${list.slice(1)} times are estimates because they start at an internal temperature.`;
+  if (names.length === 1) return `The ${names[0]} time is an estimate, because it depends on when the meat reaches a temperature.`;
+  return `Wrap and pull times are estimates, because they depend on when the meat reaches a temperature.`;
 }
 
 function defaultDownload(blob, filename) {
@@ -78,7 +93,7 @@ export function initAddToCalendar({ root = document, getTimeZone = () => null, d
   };
 
   const show = (el, on) => el && el.classList.toggle('hidden', !on);
-  const zone = () => getTimeZone() || d.browserZone();
+  const zone = () => d.browserZone(); // the device's zone, always: the same one the timeline and the serve time use
   const isGoogle = () => state.calendar === 'google';
   const selected = () => state.steps.filter((s) => state.checked.get(s.id));
 
@@ -183,7 +198,10 @@ export function initAddToCalendar({ root = document, getTimeZone = () => null, d
     const { finishTemp, pitTemp, wrapTemp, totalTime } = snap.inputs;
     state.steps = buildCookSteps(snap.plan, { finishTemp, pitTemp, wrapTemp, totalTime }, { includePrep: true, timeZone: zone() });
     for (const step of state.steps) if (!state.checked.has(step.id)) state.checked.set(step.id, step.defaultOn);
-    $('calZone').textContent = `Times in ${zoneName(zone(), snap.plan.serve)}, where the cook is`;
+    $('calZone').textContent = `Times in ${zoneName(zone(), snap.plan.serve)}, this device's time zone`;
+    const note = zoneNote(zone(), getTimeZone(), snap.plan.serve);
+    $('calZoneNote').textContent = note;
+    show($('calZoneNote'), !!note);
     rebuildSteps();
     paint();
   }
@@ -232,7 +250,7 @@ export function initAddToCalendar({ root = document, getTimeZone = () => null, d
     paint();
   });
 
-  // The cook's zone moved (the conditions card loaded a place): read the getter again.
+  // The cook location's zone moved (the conditions card loaded a place): read the getter again for the one-line note.
   root.addEventListener('ebq:cook-zone-changed', () => recompute());
 
   paint();

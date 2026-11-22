@@ -304,6 +304,18 @@ export function googleCalendarUrl(step) {
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${q(step.title)}&dates=${dates}&details=${q(`${step.note} ${SITE_LINE}`)}`;
 }
 
+/**
+ * Whether two time zones show a different clock reading at `at` (a different UTC offset then). A zone that is not
+ * recognized never counts as different: it cannot be compared, so no warning is better than a wrong one.
+ */
+export function zonesDiffer(zoneA, zoneB, at = new Date()) {
+  try {
+    return zoneOffsetMs(at.getTime(), zoneA) !== zoneOffsetMs(at.getTime(), zoneB);
+  } catch {
+    return false;
+  }
+}
+
 /** The long generic name of a time zone, for example "Mountain Time"; the zone id itself if it is not recognized. */
 export function zoneName(timeZone, at = new Date()) {
   try {

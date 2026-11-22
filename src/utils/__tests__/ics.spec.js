@@ -15,6 +15,7 @@ import {
   formatStepTime,
   formatDuration,
   zoneName,
+  zonesDiffer,
   icsFilename,
   ESTIMATE_NOTE,
   POINT_EVENT_MIN,
@@ -725,6 +726,27 @@ describe('zoneName', () => {
   ])('%s is %s', (tz, name) => expect(zoneName(tz)).toBe(name));
   test('falls back to the zone id when it is not recognized', () => {
     expect(zoneName('Not/AZone')).toBe('Not/AZone');
+  });
+});
+
+describe('zonesDiffer', () => {
+  const july = new Date('2026-07-18T18:00:00Z');
+  const january = new Date('2026-01-18T18:00:00Z');
+  test('is true when the clocks read differently at that instant', () => {
+    expect(zonesDiffer('America/Los_Angeles', 'America/Denver', july)).toBe(true);
+    expect(zonesDiffer('America/Los_Angeles', 'Asia/Kolkata', july)).toBe(true);
+  });
+  test('is false for the same zone and for zones that share an offset all year', () => {
+    expect(zonesDiffer('America/Los_Angeles', 'America/Los_Angeles', july)).toBe(false);
+    expect(zonesDiffer('America/Los_Angeles', 'America/Vancouver', july)).toBe(false);
+    expect(zonesDiffer('America/Los_Angeles', 'America/Vancouver', january)).toBe(false);
+  });
+  test('depends on the instant: Phoenix and Denver agree in winter and differ in summer', () => {
+    expect(zonesDiffer('America/Phoenix', 'America/Denver', january)).toBe(false);
+    expect(zonesDiffer('America/Phoenix', 'America/Denver', july)).toBe(true);
+  });
+  test('is false for a zone it cannot compare', () => {
+    expect(zonesDiffer('America/Los_Angeles', 'Not/AZone', july)).toBe(false);
   });
 });
 
