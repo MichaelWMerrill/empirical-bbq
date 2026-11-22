@@ -6,8 +6,9 @@
  * component-local.
  */
 import { PROTEINS } from '../../utils/proteinRegistry.js';
-import { computeModel, buildPath, FINISH_TEMP, dangerZoneHours, dangerZoneNote, cookDuration } from '../../utils/stallEngine.js';
+import { computeModel, FINISH_TEMP, dangerZoneHours, dangerZoneNote, cookDuration } from '../../utils/stallEngine.js';
 import { clampNum, enumParam, getParams, writeParams, wireCopyButton } from '../../utils/shareLink.js';
+import { buildMilestones, PREHEAT_HOURS as PREHEAT_HRS } from '../../utils/cookMilestones.js';
 
 export function initCookScheduler(protein = PROTEINS.beef_brisket) {
   const thermal = protein.thermal;
@@ -20,9 +21,6 @@ export function initCookScheduler(protein = PROTEINS.beef_brisket) {
   const tSegs = tAxes.filter((a) => a.type === 'enum' && a.control === 'segmented');
   const wAxis = tSliders.find((a) => a.id === 'weight'); // may be undefined (ribs)
   const PARAM = { weight: 'w', racks: 'rk', cut: 'ct', preparation: 'pp' };
-
-  const PREHEAT_HRS = 0.75; // smoker preheat before the meat goes on
-  const HR = 3600 * 1000;
 
   const state = {
     ...(thermal.initialState ?? { weight: 12 }),
@@ -76,15 +74,11 @@ export function initCookScheduler(protein = PROTEINS.beef_brisket) {
     wrap === 'aluminum_foil' ? 0.15 : wrap === 'peach_butcher_paper' ? 0.2 : 0.25;
   const fmtHrsRange = (h, frac) => (h > 0 ? fmtHrs(h * (1 - frac)) + '–' + fmtHrs(h * (1 + frac)) : fmtHrs(h));
 
-  // Find the clock offset (hours from meat-on) at which the meat reaches wrapTemp.
-  function wrapHoursFromPath(pts, wrapTemp) {
-    for (const p of pts) if (p.temp >= wrapTemp) return p.t;
-    return null;
-  }
-
   // Compute the schedule; returns milestones or null if no valid serve time.
   // The cook-time model selection (stall vs fixed 3-2-1) is delegated to the
-  // shared, pure cookDuration(); this controller only lays out the milestones.
+  // shared, pure cookDuration(), and the timestamps to the pure
+  // buildMilestones() (src/utils/cookMilestones.js); this controller only
+  // attaches the display copy to each milestone.
   function computeSchedule() {
     const serve = state.serveAt ? new Date(state.serveAt) : null;
     if (!serve || isNaN(serve.getTime())) return null;
@@ -97,69 +91,47 @@ export function initCookScheduler(protein = PROTEINS.beef_brisket) {
       climate: state.climate,
       cut: state.cut,
     });
-    return d.method === 'method_321' ? build321(serve, d) : buildStall(serve, d);
+    const ms = buildMilestones({ duration: d, inputs: { rest: state.rest, wrap: state.wrap, wrapTemp: state.wrapTemp }, serve });
+    return d.method === 'method_321' ? build321(ms, d) : buildStall(ms, d);
   }
 
   // Stall-model back-calc (brisket / pork).
-  function buildStall(serve, d) {
+  function buildStall(ms, d) {
     const m = d.model;
-    const pts = buildPath(m);
-
-    const pull = new Date(serve.getTime() - state.rest * HR); // rest starts (pull off pit)
-    const meatOn = new Date(pull.getTime() - m.totalTime * HR);
-    const fireUp = new Date(meatOn.getTime() - PREHEAT_HRS * HR);
-
-    const milestones = [
-      { icon: '🔥', at: fireUp, title: 'Light the fire', sub: `Preheat the pit to ${state.pitTemp}°F (${fmtHrs(PREHEAT_HRS)} before the meat goes on).` },
-      { icon: '🥩', at: meatOn, title: 'Meat on', sub: `Cold meat on the grate. Estimated ${fmtHrs(m.totalTime)} to a ${finishTemp}°F finish.` },
-    ];
-
-    if (state.wrap !== 'none') {
-      const wh = wrapHoursFromPath(pts, state.wrapTemp);
-      if (wh != null) {
-        milestones.push({
-          icon: '📦',
-          at: new Date(meatOn.getTime() + wh * HR),
-          title: `Wrap at ${state.wrapTemp}°F`,
-          sub: `Roughly when the internal temp hits your wrap target. Have paper/foil ready once the bark is set.`,
-        });
-      }
-    }
-
-    milestones.push({
-      icon: '🌡️',
-      at: pull,
-      title: `Pull & rest`,
-      sub: `Probe-tender near ${finishTemp}°F. Rest ${fmtHrs(state.rest)} in a faux-cambro before slicing.`,
-    });
-    milestones.push({ icon: '🍽️', at: serve, title: 'Serve', sub: 'Slice against the grain and eat.' });
-
-    milestones.sort((a, b) => a.at - b.at);
-    return { milestones, model: m, fireUp, serve };
+    const copy = {
+      fire: { icon: '🔥', title: 'Light the fire', sub: `Preheat the pit to ${state.pitTemp}°F (${fmtHrs(PREHEAT_HRS)} before the meat goes on).` },
+      on: { icon: '🥩', title: 'Meat on', sub: `Cold meat on the grate. Estimated ${fmtHrs(m.totalTime)} to a ${finishTemp}°F finish.` },
+      wrap: {
+        icon: '📦',
+        title: `Wrap at ${state.wrapTemp}°F`,
+        sub: `Roughly when the internal temp hits your wrap target. Have paper/foil ready once the bark is set.`,
+      },
+      pull: {
+        icon: '🌡️',
+        title: `Pull & rest`,
+        sub: `Probe-tender near ${finishTemp}°F. Rest ${fmtHrs(state.rest)} in a faux-cambro before slicing.`,
+      },
+      serve: { icon: '🍽️', title: 'Serve', sub: 'Slice against the grain and eat.' },
+    };
+    const milestones = ms.milestones.map(({ id, at }) => ({ ...copy[id], at }));
+    return { milestones, model: m, fireUp: ms.fireUp, serve: ms.serve };
   }
 
   // Fixed 3-2-1 (or 2-2-1) method for ribs: unwrapped smoke → wrapped → sauced.
-  function build321(serve, d) {
+  function build321(ms, d) {
     const { smoke, wrapH, sauce } = d.phases321;
     const total = d.totalTime;
     const label = `${smoke}-${wrapH}-${sauce}`;
-
-    const pull = new Date(serve.getTime() - state.rest * HR);
-    const meatOn = new Date(pull.getTime() - total * HR);
-    const fireUp = new Date(meatOn.getTime() - PREHEAT_HRS * HR);
-    const wrapAt = new Date(meatOn.getTime() + smoke * HR);
-    const sauceAt = new Date(meatOn.getTime() + (smoke + wrapH) * HR);
-
-    const milestones = [
-      { icon: '🔥', at: fireUp, title: 'Light the fire', sub: `Preheat the pit to ${state.pitTemp}°F (${fmtHrs(PREHEAT_HRS)} before the ribs go on).` },
-      { icon: '🥩', at: meatOn, title: 'Ribs on', sub: `Smoke unwrapped for ${fmtHrs(smoke)} (the "${label}" method for this cut).` },
-      { icon: '📦', at: wrapAt, title: 'Wrap in foil', sub: `Wrap with a little liquid and cook ${fmtHrs(wrapH)} to tenderize.` },
-      { icon: '🍯', at: sauceAt, title: 'Unwrap & sauce', sub: `Unwrap, sauce, and firm up the bark for the final ${fmtHrs(sauce)}.` },
-      { icon: '🌡️', at: pull, title: 'Pull & rest', sub: `Bend-tender near ${finishTemp}°F. Rest ${fmtHrs(state.rest)} before cutting.` },
-      { icon: '🍽️', at: serve, title: 'Serve', sub: 'Cut between the bones and eat.' },
-    ];
-    milestones.sort((a, b) => a.at - b.at);
-    return { milestones, model: { totalTime: total }, fireUp, serve };
+    const copy = {
+      fire: { icon: '🔥', title: 'Light the fire', sub: `Preheat the pit to ${state.pitTemp}°F (${fmtHrs(PREHEAT_HRS)} before the ribs go on).` },
+      on: { icon: '🥩', title: 'Ribs on', sub: `Smoke unwrapped for ${fmtHrs(smoke)} (the "${label}" method for this cut).` },
+      wrap: { icon: '📦', title: 'Wrap in foil', sub: `Wrap with a little liquid and cook ${fmtHrs(wrapH)} to tenderize.` },
+      sauce: { icon: '🍯', title: 'Unwrap & sauce', sub: `Unwrap, sauce, and firm up the bark for the final ${fmtHrs(sauce)}.` },
+      pull: { icon: '🌡️', title: 'Pull & rest', sub: `Bend-tender near ${finishTemp}°F. Rest ${fmtHrs(state.rest)} before cutting.` },
+      serve: { icon: '🍽️', title: 'Serve', sub: 'Cut between the bones and eat.' },
+    };
+    const milestones = ms.milestones.map(({ id, at }) => ({ ...copy[id], at }));
+    return { milestones, model: { totalTime: total }, fireUp: ms.fireUp, serve: ms.serve };
   }
 
   function render() {
