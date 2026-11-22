@@ -22,7 +22,7 @@
  */
 import { getPosition, fetchConditions, manualConditions } from '../../utils/conditions.js';
 import { readPrefs, writePrefs } from '../../utils/plannerPrefs.js';
-import { buildConditionsView } from './conditionsCard.view.js';
+import { buildConditionsView, summaryLine, MINI_PROMPT, MINI_LOADING, MINI_ERROR } from './conditionsCard.view.js';
 
 const MESSAGES = {
   denied: 'Location is blocked for this site. Allow it in your browser settings, or enter conditions manually.',
@@ -189,6 +189,25 @@ export function initConditionsCard({ root = document, deps = {} } = {}) {
     show($('condBody'), true);
   }
 
+  /* ---- compact strip under the "Light the fire at" card (optional markup) ---- */
+  function renderMini() {
+    const mini = $('condMini');
+    if (!mini) return;
+    const idle = state.status === 'idle';
+    const ready = isReady();
+    $('condMiniText').textContent = ready
+      ? summaryLine(buildConditionsView(state.conditions, state.window))
+      : state.status === 'loading'
+        ? MINI_LOADING
+        : state.status === 'error'
+          ? MINI_ERROR
+          : MINI_PROMPT;
+    show($('condMiniBtn'), idle);
+    const details = $('condMiniDetails');
+    details.classList.toggle('hidden', idle || state.status === 'loading');
+    details.classList.toggle('inline-flex', !(idle || state.status === 'loading'));
+  }
+
   function render() {
     const { status, formOpen } = state;
     const loading = status === 'loading';
@@ -221,6 +240,7 @@ export function initConditionsCard({ root = document, deps = {} } = {}) {
 
     show($('condForm'), formOpen);
     renderBody();
+    renderMini();
   }
 
   /* ---- location flow ---- */
@@ -249,6 +269,11 @@ export function initConditionsCard({ root = document, deps = {} } = {}) {
     render();
   }
   $('condUseBtn').addEventListener('click', load);
+  $('condMiniBtn')?.addEventListener('click', load);
+  $('condMiniDetails')?.addEventListener('click', () => {
+    // The link scrolls to the card on its own; also move focus there for keyboard and screen reader users.
+    $('conditionsCard').focus?.({ preventScroll: true });
+  });
   $('condStopBtn').addEventListener('click', () => {
     writePrefs({ autoLocate: false }, d.storage);
     state.stopped = true;
@@ -336,6 +361,7 @@ export function initConditionsCard({ root = document, deps = {} } = {}) {
     setWindow(w) {
       state.window = w ? { start: w.start, end: w.end } : null;
       renderBody();
+      renderMini();
     },
     getState: () => ({ status: state.status, source: state.conditions?.source ?? null, errorCode: state.errorCode }),
     ready,

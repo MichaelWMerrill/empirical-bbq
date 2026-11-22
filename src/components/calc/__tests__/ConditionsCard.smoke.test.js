@@ -236,6 +236,90 @@ describe('remembering the opt-in (autoLocate)', () => {
   });
 });
 
+describe('compact strip under "Light the fire at"', () => {
+  it('sits directly under the "Light the fire at" card, above the timeline', async () => {
+    await setup();
+    const hero = $('fireUpBig').closest('.rounded-2xl');
+    expect(hero.nextElementSibling.id).toBe('condMini');
+    expect($('condMini').nextElementSibling.querySelector('#timeline')).toBeTruthy();
+  });
+
+  it('before a location it asks, with the button', async () => {
+    await setup({ permission: 'prompt' });
+    expect(text('condMiniText')).toBe('Cooking somewhere cold or high up?');
+    expect(text('condMiniBtn')).toBe('Use my location');
+    expect(hidden('condMiniBtn')).toBe(false);
+    expect(hidden('condMiniDetails')).toBe(true);
+    expect($('condMiniText').getAttribute('aria-live')).toBe('polite');
+  });
+
+  it('tapping its button runs the same load as the card and then summarizes with a Details link', async () => {
+    const { getPosition, card } = await setup({ permission: 'prompt' });
+    $('condMiniBtn').click();
+    await vi.waitFor(() => expect(card.getState().status).toBe('ready'));
+    expect(getPosition).toHaveBeenCalledTimes(1);
+    expect(text('condMiniText')).toBe('Mapleton, UT · 4,797 ft · 44 to 46°F');
+    expect(hidden('condMiniBtn')).toBe(true);
+    expect(hidden('condMiniDetails')).toBe(false);
+    expect($('condMiniDetails').getAttribute('href')).toBe('#conditionsCard');
+    expect(text('condPlace')).toBe('Mapleton, UT'); // the full card shows the same state
+  });
+
+  it('shows a loading message while it waits, with no button', async () => {
+    let release;
+    const { card } = await setup({ fetchImpl: vi.fn(() => new Promise((res) => (release = res))) });
+    $('condMiniBtn').click();
+    await vi.waitFor(() => expect(card.getState().status).toBe('loading'));
+    expect(text('condMiniText')).toBe('Finding your forecast');
+    expect(hidden('condMiniBtn')).toBe(true);
+    expect(hidden('condMiniDetails')).toBe(true);
+    release(await nwsConditions());
+    await vi.waitFor(() => expect(card.getState().status).toBe('ready'));
+  });
+
+  it('on an error it says so and points to the card for the options', async () => {
+    const { card } = await setup({ position: new ConditionsError('denied') });
+    $('condMiniBtn').click();
+    await vi.waitFor(() => expect(card.getState().status).toBe('error'));
+    expect(text('condMiniText')).toBe('Conditions are not available right now.');
+    expect(hidden('condMiniDetails')).toBe(false);
+    expect(hidden('condMiniBtn')).toBe(true);
+  });
+
+  it('follows the cook window and manual conditions', async () => {
+    const { card } = await setup({ permission: 'granted' });
+    expect(text('condMiniText')).toBe('Mapleton, UT · 4,797 ft · 44 to 46°F');
+    card.setWindow({ start: new Date('2026-11-22T17:00:00-07:00'), end: new Date('2026-11-22T22:00:00-07:00') });
+    expect(text('condMiniText')).toBe('Mapleton, UT · 4,797 ft · 40 to 42°F');
+    card.setWindow(null);
+    expect(text('condMiniText')).toBe('Mapleton, UT · 4,797 ft');
+
+    document.body.innerHTML = '';
+    localStorage.clear();
+    await setup();
+    $('condManualBtn').click();
+    type('condElev', 5200);
+    type('condLow', 38);
+    type('condHigh', 62);
+    $('condForm').dispatchEvent(new Event('submit', { cancelable: true }));
+    expect(text('condMiniText')).toBe('Manual · 5,200 ft · 38 to 62°F');
+  });
+
+  it('the Details link moves focus to the full card', async () => {
+    await setup({ permission: 'granted' });
+    $('condMiniDetails').click();
+    expect(document.activeElement.id).toBe('conditionsCard');
+  });
+
+  it('meets the 44px target and has no em dashes in any state', async () => {
+    const { card } = await setup({ permission: 'granted' });
+    expect($('condMiniBtn').className).toMatch(/min-h-\[44px\]/);
+    expect($('condMiniDetails').className).toMatch(/min-h-\[44px\]/);
+    expect(text('condMini')).not.toMatch(/\u2014/);
+    expect(card.getState().status).toBe('ready');
+  });
+});
+
 describe('error states', () => {
   const cases = [
     ['denied', 'Location is blocked for this site. Allow it in your browser settings, or enter conditions manually.', true],

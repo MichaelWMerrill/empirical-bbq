@@ -2,7 +2,7 @@ import { describe, test, expect, vi } from 'vitest';
 import pointsFixture from '../../../utils/__tests__/fixtures/nws-points.json';
 import hourlyFixture from '../../../utils/__tests__/fixtures/nws-hourly.json';
 import { fetchConditions, manualConditions } from '../../../utils/conditions.js';
-import { buildConditionsView, zoneLabel, NO_WINDOW_NOTE, SKY_NOTE, SOURCE_CREDIT, PLANNING_LINE } from '../conditionsCard.view.js';
+import { buildConditionsView, summaryLine, zoneLabel, NO_WINDOW_NOTE, SKY_NOTE, SOURCE_CREDIT, PLANNING_LINE } from '../conditionsCard.view.js';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const jsonRes = (body) => ({ ok: true, status: 200, json: async () => body });
@@ -124,6 +124,24 @@ describe('buildConditionsView: manual', () => {
   test('wind is optional', () => {
     const v = buildConditionsView(manualConditions({ elevationFt: 0, lowF: 50, highF: 50 }), win('14:00', '17:00'));
     expect(rowMap(v)).toEqual({ elevation: '0 ft', boil: '212°F', temp: '50°F' });
+  });
+});
+
+describe('summaryLine (compact strip)', () => {
+  test('place, elevation and air temperature range, joined with middle dots', async () => {
+    expect(summaryLine(buildConditionsView(await nws(), win('14:00', '17:00')))).toBe('Mapleton, UT · 4,797 ft · 44 to 46°F');
+  });
+  test('leaves out what is missing: no cook window, or a window outside the forecast', async () => {
+    expect(summaryLine(buildConditionsView(await nws(), null))).toBe('Mapleton, UT · 4,797 ft');
+    const far = { start: new Date('2026-12-05T08:00:00-07:00'), end: new Date('2026-12-05T20:00:00-07:00') };
+    expect(summaryLine(buildConditionsView(await nws(), far))).toBe('Mapleton, UT · 4,797 ft');
+  });
+  test('manual conditions lead with "Manual"', () => {
+    const v = buildConditionsView(manualConditions({ elevationFt: 5200, lowF: 38, highF: 62 }), win('14:00', '17:00'));
+    expect(summaryLine(v)).toBe('Manual · 5,200 ft · 38 to 62°F');
+  });
+  test('contains no em dash', async () => {
+    expect(summaryLine(buildConditionsView(await nws(), win('14:00', '17:00')))).not.toMatch(/\u2014/);
   });
 });
 

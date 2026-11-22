@@ -10,6 +10,7 @@ import { PROTEINS } from '../../utils/proteinRegistry.js';
 import ProteinSelector from './ProteinSelector.astro';
 import GearModule from './GearModule.astro';
 import ConditionsCard from './ConditionsCard.astro';
+import ConditionsStrip from './ConditionsStrip.astro';
 import SiteFooter from '../SiteFooter.astro';
 
 export interface Props {
@@ -168,6 +169,8 @@ const defaultVisible = new Set(['weight']);
             </div>
             <p id="warnBox" class="hidden mt-4 rounded-lg bg-amber-500/10 ring-1 ring-amber-500/40 px-3 py-2 text-[13px] text-amber-200"></p>
           </div>
+
+          <ConditionsStrip />
 
           <div class="rounded-2xl bg-base-800/70 ring-1 ring-base-700 shadow-xl shadow-black/40 p-5 sm:p-6">
             <div class="flex items-center justify-between mb-4">

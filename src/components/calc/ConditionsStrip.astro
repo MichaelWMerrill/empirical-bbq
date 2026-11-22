@@ -1,0 +1,22 @@
+---
+/*
+ * ConditionsStrip: a compact one-line entry point to the conditions card, placed
+ * directly under the "Light the fire at" card so it is seen without scrolling to
+ * the full card. Before a location it asks; once loaded it summarizes (place,
+ * elevation, air temperature range) with a "Details" link to the full card. It is
+ * driven by the same controller state as ConditionsCard (./conditionsCard.controller.js)
+ * and, like the card, is display only.
+ *
+ * Same color and target rules as the card: dark text on flame-500 (6.7:1), base-300
+ * text (8.0:1 on base-800), and every control at least 44px tall.
+ */
+import { MINI_PROMPT } from './conditionsCard.view.js';
+---
+
+<div id="condMini" class="rounded-xl bg-base-800/70 ring-1 ring-base-700 shadow-lg shadow-black/30 px-4 py-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+  <p id="condMiniText" aria-live="polite" class="text-sm text-base-300 leading-snug py-1">{MINI_PROMPT}</p>
+  <div class="flex items-center gap-2">
+    <button id="condMiniBtn" type="button" class="min-h-[44px] rounded-lg bg-flame-500 hover:bg-flame-400 text-base-900 font-bold text-sm px-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-flame-400 focus-visible:ring-offset-2 focus-visible:ring-offset-base-800">Use my location</button>
+    <a id="condMiniDetails" href="#conditionsCard" class="hidden min-h-[44px] items-center rounded-md px-2 text-sm font-medium text-flame-400 underline underline-offset-2 hover:text-flame-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-flame-400">Details</a>
+  </div>
+</div>

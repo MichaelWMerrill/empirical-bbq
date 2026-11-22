@@ -14,6 +14,9 @@ export const WIND_NOTE = 'Uses the windier end when the forecast gives a range.'
 export const PLANNING_LINE = "Shown for planning. The time estimate doesn't use these conditions yet.";
 export const SOURCE_CREDIT = 'Forecast: National Weather Service';
 export const NO_WINDOW_NOTE = 'Pick a serving time to see the forecast for your cook.';
+export const MINI_PROMPT = 'Cooking somewhere cold or high up?';
+export const MINI_LOADING = 'Finding your forecast';
+export const MINI_ERROR = 'Conditions are not available right now.';
 
 const whole = (n) => Math.round(n);
 const degF = (n) => `${whole(n)}°F`;
@@ -110,6 +113,16 @@ function missingNote(summary) {
  *   Rows whose value is missing are left out (for example, Gusts when the feed
  *   reports none).
  */
+/**
+ * One line for the compact strip: place (when known), elevation and the air
+ * temperature range, joined with middle dots. Parts that are missing are left out.
+ */
+export function summaryLine(view) {
+  const value = (key) => view.rows.find((r) => r.key === key)?.value;
+  const parts = [view.place ?? (view.source === 'manual' ? 'Manual' : null), value('elevation'), value('temp')];
+  return parts.filter(Boolean).join(' · ');
+}
+
 export function buildConditionsView(conditions, cookWindow) {
   const manual = conditions.source === 'manual';
   const rows = [];
