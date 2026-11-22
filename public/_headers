@@ -20,7 +20,11 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: SAMEORIGIN
-  Permissions-Policy: geolocation=(), microphone=(), camera=(), interest-cohort=()
+  # geolocation=(self): the cook conditions card asks for the browser's location,
+  # only when the user taps "Use my location" (or has already allowed it). The
+  # position is rounded on the device and sent only to api.weather.gov (see
+  # connect-src below). Embedded frames stay blocked. Every other entry is unchanged.
+  Permissions-Policy: geolocation=(self), microphone=(), camera=(), interest-cohort=()
   Cross-Origin-Opener-Policy: same-origin
   # Content-Security-Policy. ENFORCED (was Report-Only during allowlist
   # validation). Directives are unchanged from the validated report-only policy,
@@ -32,4 +36,7 @@
   # images from arbitrary advertiser hosts. If a legitimate resource is ever
   # blocked, add its host here (or temporarily switch back to
   # `Content-Security-Policy-Report-Only` to re-observe).
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; upgrade-insecure-requests; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://*.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.google-analytics.com https://adservice.google.com https://*.adtrafficquality.google https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://*.adtrafficquality.google https://challenges.cloudflare.com; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.g.doubleclick.net https://*.adtrafficquality.google https://challenges.cloudflare.com; worker-src 'self' blob:
+  # connect-src also lists https://api.weather.gov (exact host, no wildcard) for the
+  # National Weather Service forecast used by the cook conditions card. The Service
+  # Worker only intercepts same-origin build assets, so it never sees that request.
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; upgrade-insecure-requests; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://*.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.google-analytics.com https://adservice.google.com https://*.adtrafficquality.google https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://*.adtrafficquality.google https://challenges.cloudflare.com; connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.g.doubleclick.net https://*.adtrafficquality.google https://challenges.cloudflare.com https://api.weather.gov; worker-src 'self' blob:
