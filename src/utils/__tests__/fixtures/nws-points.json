@@ -1,0 +1,12 @@
+{
+ "properties": {
+  "forecastHourly": "https://api.weather.gov/gridpoints/SLC/108,146/forecast/hourly",
+  "timeZone": "America/Denver",
+  "relativeLocation": {
+   "properties": {
+    "city": "Mapleton",
+    "state": "UT"
+   }
+  }
+ }
+}

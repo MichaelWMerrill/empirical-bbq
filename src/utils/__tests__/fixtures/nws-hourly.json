@@ -1,0 +1,173 @@
+{
+ "properties": {
+  "elevation": {
+   "unitCode": "wmoUnit:m",
+   "value": 1462.1256
+  },
+  "generatedAt": "2026-11-22T20:03:06+00:00",
+  "periods": [
+   {
+    "number": 1,
+    "name": "",
+    "startTime": "2026-11-22T13:00:00-07:00",
+    "endTime": "2026-11-22T14:00:00-07:00",
+    "isDaytime": true,
+    "temperature": 44,
+    "temperatureUnit": "F",
+    "temperatureTrend": null,
+    "probabilityOfPrecipitation": {
+     "unitCode": "wmoUnit:percent",
+     "value": 0
+    },
+    "dewpoint": {
+     "unitCode": "wmoUnit:degC",
+     "value": -3.3333333333333335
+    },
+    "relativeHumidity": {
+     "unitCode": "wmoUnit:percent",
+     "value": 48
+    },
+    "windSpeed": "3 mph",
+    "windDirection": "ENE",
+    "icon": "https://api.weather.gov/icons/land/day/ovc?size=small",
+    "shortForecast": "Cloudy",
+    "detailedForecast": ""
+   },
+   {
+    "number": 2,
+    "name": "",
+    "startTime": "2026-11-22T14:00:00-07:00",
+    "endTime": "2026-11-22T15:00:00-07:00",
+    "isDaytime": true,
+    "temperature": 45,
+    "temperatureUnit": "F",
+    "temperatureTrend": null,
+    "probabilityOfPrecipitation": {
+     "unitCode": "wmoUnit:percent",
+     "value": 0
+    },
+    "dewpoint": {
+     "unitCode": "wmoUnit:degC",
+     "value": -3.3333333333333335
+    },
+    "relativeHumidity": {
+     "unitCode": "wmoUnit:percent",
+     "value": 48
+    },
+    "windSpeed": "1 mph",
+    "windDirection": "NE",
+    "icon": "https://api.weather.gov/icons/land/day/bkn?size=small",
+    "shortForecast": "Mostly Cloudy",
+    "detailedForecast": ""
+   },
+   {
+    "number": 3,
+    "name": "",
+    "startTime": "2026-11-22T15:00:00-07:00",
+    "endTime": "2026-11-22T16:00:00-07:00",
+    "isDaytime": true,
+    "temperature": 46,
+    "temperatureUnit": "F",
+    "temperatureTrend": null,
+    "probabilityOfPrecipitation": {
+     "unitCode": "wmoUnit:percent",
+     "value": 0
+    },
+    "dewpoint": {
+     "unitCode": "wmoUnit:degC",
+     "value": -2.7777777777777777
+    },
+    "relativeHumidity": {
+     "unitCode": "wmoUnit:percent",
+     "value": 47
+    },
+    "windSpeed": "1 mph",
+    "windDirection": "NE",
+    "icon": "https://api.weather.gov/icons/land/day/bkn?size=small",
+    "shortForecast": "Mostly Cloudy",
+    "detailedForecast": ""
+   },
+   {
+    "number": 4,
+    "name": "",
+    "startTime": "2026-11-22T16:00:00-07:00",
+    "endTime": "2026-11-22T17:00:00-07:00",
+    "isDaytime": true,
+    "temperature": 44,
+    "temperatureUnit": "F",
+    "temperatureTrend": null,
+    "probabilityOfPrecipitation": {
+     "unitCode": "wmoUnit:percent",
+     "value": 0
+    },
+    "dewpoint": {
+     "unitCode": "wmoUnit:degC",
+     "value": -2.2222222222222223
+    },
+    "relativeHumidity": {
+     "unitCode": "wmoUnit:percent",
+     "value": 52
+    },
+    "windSpeed": "1 mph",
+    "windDirection": "NE",
+    "icon": "https://api.weather.gov/icons/land/day/bkn?size=small",
+    "shortForecast": "Mostly Cloudy",
+    "detailedForecast": ""
+   },
+   {
+    "number": 5,
+    "name": "",
+    "startTime": "2026-11-22T17:00:00-07:00",
+    "endTime": "2026-11-22T18:00:00-07:00",
+    "isDaytime": true,
+    "temperature": 42,
+    "temperatureUnit": "F",
+    "temperatureTrend": null,
+    "probabilityOfPrecipitation": {
+     "unitCode": "wmoUnit:percent",
+     "value": 0
+    },
+    "dewpoint": {
+     "unitCode": "wmoUnit:degC",
+     "value": -3.3333333333333335
+    },
+    "relativeHumidity": {
+     "unitCode": "wmoUnit:percent",
+     "value": 52
+    },
+    "windSpeed": "8 mph",
+    "windDirection": "ENE",
+    "icon": "https://api.weather.gov/icons/land/day/bkn?size=small",
+    "shortForecast": "Mostly Cloudy",
+    "detailedForecast": ""
+   },
+   {
+    "number": 6,
+    "name": "",
+    "startTime": "2026-11-22T18:00:00-07:00",
+    "endTime": "2026-11-22T19:00:00-07:00",
+    "isDaytime": false,
+    "temperature": 40,
+    "temperatureUnit": "F",
+    "temperatureTrend": null,
+    "probabilityOfPrecipitation": {
+     "unitCode": "wmoUnit:percent",
+     "value": 0
+    },
+    "dewpoint": {
+     "unitCode": "wmoUnit:degC",
+     "value": -4.444444444444445
+    },
+    "relativeHumidity": {
+     "unitCode": "wmoUnit:percent",
+     "value": 53
+    },
+    "windSpeed": "8 mph",
+    "windDirection": "ENE",
+    "icon": "https://api.weather.gov/icons/land/night/bkn?size=small",
+    "shortForecast": "Mostly Cloudy",
+    "detailedForecast": ""
+   }
+  ]
+ }
+}
