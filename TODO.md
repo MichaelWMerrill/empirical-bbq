@@ -134,6 +134,33 @@ After the extensionless-canonical migration deploys, do these by hand:
       itself (manual, human-approved) still pending, along with final
       consent copy.
 - [ ] Email capture / ESP integration (= #6 above).
+- [ ] Serve time follows the cook location's time zone: backlog, not started.
+      Today the scheduler's "When do you want to eat?" box is read in the DEVICE's
+      time zone, and both the timeline and the Add to calendar panel show device-local
+      times (PR #87). When the conditions card has found a cook location on a
+      different clock, the panel says so in one line but changes no time. The fuller
+      fix: read the serve time in the cook location's zone (the NWS `timeZone`), and
+      show the timeline in it too, so a planner at home can set up a cook somewhere
+      else correctly. Needs zone-aware parsing of the serve input (`Intl`, no
+      library), the share link's `s=` to say which zone, and a decision about the
+      zone label on the timeline. `buildMilestones` and `ics.js` already work in
+      absolute instants.
+- [ ] Copy audit (separate PR, science-editor reviews). Flagged during the
+      conditions and calendar batch; none changed yet:
+      - Scheduler timeline, wrap milestone (`cookScheduler.controller.js`):
+        "Have paper/foil ready once the bark is set." The site's own wrap post argues
+        against bark as the trigger, and the calendar note already avoids it.
+      - First scheduler FAQ answer (`cook-scheduler.astro`): "plus a rest of an hour
+        or more" is a duration recommendation, and the rest slider goes down to 0.5 hr.
+      - Scheduler FAQ question "How long should a brisket rest before slicing?" is
+        brisket-specific on a three-protein page.
+      - Yield calculator (`yieldCalculator.controller.js`): "execute an insulated
+        faux-cambro hold ... for a minimum of 2 hours" with "above 140°F", and the
+        foil-and-towel cooler hold "keeps it safely above 140°F" line: unattributed
+        duration and food-safety claims. FoodSafety.gov (HHS) says "hot foods must
+        stay hot (above 140°F (60°C))".
+      - Scheduler page (`CookScheduler.astro`): "not logged from my own pit" is a
+        first-person claim about the author's experience; confirm it is true.
 - [x] CSP enforce-mode flip — done: `public/_headers` now sends
       `Content-Security-Policy` (was `-Report-Only`), same validated allowlist.
       Watch for any blocked ad/analytics resource post-deploy; add its host or
