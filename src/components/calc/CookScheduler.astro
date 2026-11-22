@@ -9,6 +9,7 @@
 import { PROTEINS } from '../../utils/proteinRegistry.js';
 import ProteinSelector from './ProteinSelector.astro';
 import GearModule from './GearModule.astro';
+import ConditionsCard from './ConditionsCard.astro';
 import SiteFooter from '../SiteFooter.astro';
 
 export interface Props {
@@ -179,6 +180,8 @@ const defaultVisible = new Set(['weight']);
             <ol id="timeline" class="relative border-l border-base-700 ml-2 space-y-6"></ol>
           </div>
 
+          <ConditionsCard />
+
           <GearModule tool="scheduler" state={{ protein: protein.meta.id, pit: 'offset_smoker' }} />
         </section>
       </div>
@@ -254,6 +257,7 @@ const defaultVisible = new Set(['weight']);
 
 <script>
   import { initCookScheduler } from './cookScheduler.controller.js';
+  import { initConditionsCard } from './conditionsCard.controller.js';
   import { PROTEINS } from '../../utils/proteinRegistry.js';
   import { proteinParam } from '../../utils/shareLink.js';
   document.addEventListener('DOMContentLoaded', () => {
@@ -264,6 +268,8 @@ const defaultVisible = new Set(['weight']);
       /* ignore */
     }
     const id = proteinParam(raw, Object.keys(PROTEINS));
-    initCookScheduler(PROTEINS[id]);
+    // The card only ever receives the cook window (meat on to pull); nothing flows back.
+    const conditionsCard = initConditionsCard();
+    initCookScheduler(PROTEINS[id], { onSchedule: conditionsCard.setWindow });
   });
 </script>

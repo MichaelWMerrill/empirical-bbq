@@ -1,0 +1,102 @@
+---
+/*
+ * ConditionsCard: forecast and boiling point for where the cook happens, plus a
+ * cooker class picker. Display only: nothing here feeds the cook-time estimate,
+ * and the card says so. Mounted once, in CookScheduler.astro, so it serves every
+ * protein the scheduler page supports. Client wiring: ./conditionsCard.controller.js.
+ *
+ * Colors: dark text on flame-500 (6.7:1) rather than white (2.8:1); secondary
+ * text is base-300/base-400 (8.0:1 / 4.6:1 on base-800); input borders are
+ * base-400 (4.6:1).
+ */
+import { COOKER_CLASSES } from '../../utils/plannerPrefs.js';
+import { PLANNING_LINE } from './conditionsCard.view.js';
+
+const field =
+  'w-full min-h-[44px] rounded-lg bg-base-900 border border-base-400 px-3 text-sm text-white placeholder:text-base-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-flame-400 aria-[invalid=true]:border-amber-300';
+const btnPrimary =
+  'min-h-[44px] rounded-lg bg-flame-500 hover:bg-flame-400 text-base-900 font-bold text-sm px-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-flame-400 focus-visible:ring-offset-2 focus-visible:ring-offset-base-800';
+const btnSecondary =
+  'min-h-[44px] rounded-lg bg-base-900 ring-1 ring-base-400 hover:bg-base-700 text-base-300 hover:text-white font-medium text-sm px-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-flame-400';
+const errText = 'text-xs text-amber-300 leading-snug';
+---
+
+<section id="conditionsCard" aria-labelledby="condTitle" class="rounded-2xl bg-base-800/70 ring-1 ring-base-700 shadow-xl shadow-black/40 p-5 sm:p-6 space-y-5">
+  <div class="flex items-start justify-between gap-3">
+    <div>
+      <h3 id="condTitle" class="text-sm font-semibold text-white">Cook conditions</h3>
+      <p id="condPlace" class="hidden text-xs text-base-300 mt-0.5"></p>
+    </div>
+    <span id="condPill" class="hidden shrink-0 rounded-full bg-flame-500/10 ring-1 ring-flame-500/40 text-flame-400 text-xs font-semibold px-2.5 py-1"></span>
+  </div>
+
+  <p id="condIntro" class="text-sm text-base-300 leading-relaxed">See the forecast and boiling point for your cook location.</p>
+
+  <p id="condStatus" aria-live="polite" class="hidden text-sm text-base-300 leading-relaxed"></p>
+
+  <div id="condActions" class="flex flex-wrap gap-2">
+    <button id="condUseBtn" type="button" class={btnPrimary}>Use my location</button>
+    <button id="condManualBtn" type="button" class={btnSecondary}>Enter manually</button>
+  </div>
+
+  <p id="condPrivacy" class="text-xs text-base-400 leading-snug">Your browser reads your location only when you tap the button or have already allowed it here. It is rounded to about 1 km on your device, and only that rounded position goes to the National Weather Service.</p>
+
+  <form id="condForm" class="hidden space-y-3" novalidate aria-labelledby="condFormTitle">
+    <p id="condFormTitle" class="text-sm font-semibold text-white">Enter conditions</p>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="col-span-2">
+        <label for="condElev" class="block text-xs font-medium text-base-300 mb-1">Elevation (ft)</label>
+        <input id="condElev" name="elevation" type="number" inputmode="decimal" step="1" class={field} aria-describedby="condElevErr" />
+        <p id="condElevErr" class={errText} aria-live="polite"></p>
+      </div>
+      <div>
+        <label for="condLow" class="block text-xs font-medium text-base-300 mb-1">Expected low (°F)</label>
+        <input id="condLow" name="low" type="number" inputmode="decimal" step="1" class={field} aria-describedby="condLowErr condRangeErr" />
+        <p id="condLowErr" class={errText} aria-live="polite"></p>
+      </div>
+      <div>
+        <label for="condHigh" class="block text-xs font-medium text-base-300 mb-1">Expected high (°F)</label>
+        <input id="condHigh" name="high" type="number" inputmode="decimal" step="1" class={field} aria-describedby="condHighErr condRangeErr" />
+        <p id="condHighErr" class={errText} aria-live="polite"></p>
+      </div>
+      <p id="condRangeErr" class={`col-span-2 ${errText}`} aria-live="polite"></p>
+      <div class="col-span-2">
+        <label for="condWind" class="block text-xs font-medium text-base-300 mb-1">Wind (mph, optional)</label>
+        <input id="condWind" name="wind" type="number" inputmode="decimal" step="1" class={field} aria-describedby="condWindErr" />
+        <p id="condWindErr" class={errText} aria-live="polite"></p>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button type="submit" class={btnPrimary}>Show conditions</button>
+      <button id="condFormBack" type="button" class={btnSecondary}>Back</button>
+    </div>
+  </form>
+
+  <div id="condBody" class="hidden space-y-4">
+    <dl id="condRows" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3"></dl>
+    <div id="condStrip" class="hidden">
+      <p id="condStripLabel" class="text-xs font-medium text-base-300 mb-2"></p>
+      <ol id="condStripGrid" aria-label="Hourly forecast during the cook" class="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-12 gap-1.5"></ol>
+    </div>
+    <p id="condNote" class="hidden text-xs text-base-300 leading-snug"></p>
+  </div>
+
+  <div>
+    <p id="condCookerLegend" class="text-sm font-medium text-base-300 mb-2">Your cooker</p>
+    <div id="condCooker" role="group" aria-labelledby="condCookerLegend" class="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
+      {COOKER_CLASSES.map((c) => (
+        <button type="button" data-cooker={c.id} class="cond-cooker-opt min-h-[44px] rounded-md px-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-flame-400" aria-pressed="false">{c.label}</button>
+      ))}
+    </div>
+    <label for="condBlanket" class="mt-2 flex min-h-[44px] items-center gap-3 text-sm text-base-300 cursor-pointer">
+      <input id="condBlanket" type="checkbox" class="h-5 w-5 shrink-0 rounded border-base-400 bg-base-900 accent-flame-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-flame-400" />
+      <span>Insulation blanket</span>
+    </label>
+    <p class="text-xs text-base-400">Saved on this device. Not used in the time estimate yet.</p>
+  </div>
+
+  <div class="border-t border-base-700 pt-3 space-y-1">
+    <p id="condPlanningLine" class="text-xs text-base-300 leading-snug">{PLANNING_LINE}</p>
+    <p id="condCredit" class="hidden text-[11px] text-base-400">Forecast: National Weather Service</p>
+  </div>
+</section>
