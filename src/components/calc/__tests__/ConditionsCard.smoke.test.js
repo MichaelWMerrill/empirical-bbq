@@ -231,7 +231,7 @@ describe('remembering the opt-in (autoLocate)', () => {
   it('the location note says when location is read', async () => {
     await setup();
     expect(text('condPrivacy')).toBe(
-      'Your browser reads your location only when you tap the button, or automatically if you've allowed it for this site or turned it on here before. It's rounded to about 1 km on your device, and only that rounded position goes to the National Weather Service.'
+      "Your browser reads your location only when you tap the button, or automatically if you've allowed it for this site or turned it on here before. It's rounded to about 1 km on your device, and only that rounded position goes to the National Weather Service."
     );
   });
 });
