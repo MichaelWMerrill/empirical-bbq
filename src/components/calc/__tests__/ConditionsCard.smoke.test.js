@@ -31,8 +31,9 @@ const type = (id, value) => {
   $(id).dispatchEvent(new Event('input'));
 };
 
-async function setup({ permission = 'prompt', position = { lat: 40.13, lon: -111.58 }, conditions, fetchImpl } = {}) {
+async function setup({ permission = 'prompt', position = { lat: 40.13, lon: -111.58 }, conditions, fetchImpl, prefs } = {}) {
   await mountComponent(CookScheduler);
+  if (prefs) localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
   const getPosition = vi.fn(async () => {
     if (position instanceof Error) throw position;
     return position;
@@ -128,6 +129,110 @@ describe('location flow', () => {
     card.setWindow(null);
     expect(text('condNote')).toBe('Pick a serving time to see the forecast for your cook.');
     expect(fetchC).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('remembering the opt-in (autoLocate)', () => {
+  const stored = () => JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}');
+
+  it('no contact on load unless autoLocate is true: nothing stored, nothing requested', async () => {
+    const { getPosition, fetchC } = await setup({ permission: 'prompt' });
+    expect(getPosition).not.toHaveBeenCalled();
+    expect(fetchC).not.toHaveBeenCalled();
+    expect(localStorage.getItem(PREFS_KEY)).toBeNull();
+  });
+
+  it('with autoLocate true it re-detects on load even though the Permissions API says prompt', async () => {
+    const { getPosition, fetchC, card } = await setup({ permission: 'prompt', prefs: { autoLocate: true } });
+    expect(getPosition).toHaveBeenCalledTimes(1);
+    expect(fetchC).toHaveBeenCalledWith(40.13, -111.58);
+    expect(card.getState()).toMatchObject({ status: 'ready', source: 'nws' });
+    expect(text('condPlace')).toBe('Mapleton, UT');
+  });
+
+  it('with autoLocate true it re-detects when the Permissions API is missing or denied, too', async () => {
+    for (const permission of [null, 'denied']) {
+      document.body.innerHTML = '';
+      const { getPosition } = await setup({ permission, prefs: { autoLocate: true } });
+      expect(getPosition).toHaveBeenCalledTimes(1);
+    }
+  });
+
+  it('a successful fetch saves autoLocate true, a boolean and no coordinates', async () => {
+    await setup({ permission: 'prompt' });
+    $('condUseBtn').click();
+    await vi.waitFor(() => expect(stored().autoLocate).toBe(true));
+    expect(localStorage.getItem(PREFS_KEY)).not.toMatch(/40\.13|111\.58|Mapleton|4797/);
+    expect(localStorage.length).toBe(1);
+  });
+
+  it('manual conditions do not turn it on', async () => {
+    await setup();
+    $('condManualBtn').click();
+    type('condElev', 100);
+    type('condLow', 40);
+    type('condHigh', 60);
+    $('condForm').dispatchEvent(new Event('submit', { cancelable: true }));
+    expect(stored().autoLocate).toBeUndefined();
+  });
+
+  for (const code of ['denied', 'unavailable', 'timeout', 'unsupported']) {
+    it(`a ${code} location request clears it and shows the button instead of retrying on the next load`, async () => {
+      const { card } = await setup({ permission: 'prompt', prefs: { autoLocate: true }, position: new ConditionsError(code) });
+      expect(card.getState().status).toBe('error');
+      expect(stored().autoLocate).toBe(false);
+      expect(hidden('condActions')).toBe(false);
+      expect(hidden('condManualBtn')).toBe(false);
+      document.body.innerHTML = '';
+      const next = await setup({ permission: 'prompt' }); // reload
+      expect(next.getPosition).not.toHaveBeenCalled();
+    });
+  }
+
+  it('a forecast-service failure does not withdraw the opt-in', async () => {
+    for (const code of ['upstream', 'network', 'outside_coverage']) {
+      document.body.innerHTML = '';
+      localStorage.clear();
+      const { card } = await setup({ prefs: { autoLocate: true }, fetchImpl: vi.fn(async () => { throw new ConditionsError(code); }) });
+      expect(card.getState()).toMatchObject({ status: 'error', errorCode: code });
+      expect(stored().autoLocate).toBe(true);
+    }
+  });
+
+  it('shows "Stop using my location" when loaded with the opt-in on, and it clears the opt-in', async () => {
+    await setup({ permission: 'prompt', prefs: { autoLocate: true } });
+    expect(hidden('condAutoRow')).toBe(false);
+    expect(hidden('condStopBtn')).toBe(false);
+    expect(text('condStopBtn')).toBe('Stop using my location');
+    expect($('condStopBtn').className).toMatch(/min-h-\[44px\]/);
+    $('condStopBtn').click();
+    expect(stored().autoLocate).toBe(false);
+    expect(hidden('condStopBtn')).toBe(true);
+    expect(hidden('condStopNote')).toBe(false);
+    expect(text('condStopNote')).toBe('Your location will not be requested automatically.');
+    expect(rows().elevation).toBe('4,797 ft'); // what is on screen stays
+  });
+
+  it('Stop sticks even on a browser that remembers the grant, and is not offered when manual or not loaded', async () => {
+    await setup({ permission: 'prompt', prefs: { autoLocate: true } });
+    $('condStopBtn').click();
+    document.body.innerHTML = '';
+    const { getPosition } = await setup({ permission: 'granted' }); // reload, browser still says granted
+    expect(getPosition).not.toHaveBeenCalled();
+    expect(hidden('condAutoRow')).toBe(true);
+  });
+
+  it('a browser grant still loads on its own when the user has never decided', async () => {
+    const { getPosition } = await setup({ permission: 'granted' });
+    expect(getPosition).toHaveBeenCalledTimes(1);
+    expect(stored().autoLocate).toBe(true);
+  });
+
+  it('the location note says when location is read', async () => {
+    await setup();
+    expect(text('condPrivacy')).toBe(
+      'Your browser reads your location only when you tap the button or have turned it on here before. It is rounded to about 1 km on your device, and only that rounded position goes to the National Weather Service.'
+    );
   });
 });
 
@@ -288,6 +393,7 @@ describe('cooker class and blanket', () => {
     document.querySelector('[data-cooker=offset]').click();
     expect(localStorage.length).toBe(1);
     expect(sessionStorage.length).toBe(0); // the injected fetch bypasses the cache; the card itself stores nothing
+    expect(JSON.parse(localStorage.getItem(PREFS_KEY))).toEqual({ autoLocate: true, cooker: 'offset' });
     expect(localStorage.getItem(PREFS_KEY)).not.toMatch(/40\.13|111\.58|Mapleton|4797/);
   });
 });

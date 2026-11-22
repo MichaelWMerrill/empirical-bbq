@@ -39,7 +39,12 @@ const errText = 'text-xs text-amber-300 leading-snug';
     <button id="condManualBtn" type="button" class={btnSecondary}>Enter manually</button>
   </div>
 
-  <p id="condPrivacy" class="text-xs text-base-400 leading-snug">Your browser reads your location only when you tap the button or have already allowed it here. It is rounded to about 1 km on your device, and only that rounded position goes to the National Weather Service.</p>
+  <div id="condAutoRow" class="hidden">
+    <button id="condStopBtn" type="button" class="hidden min-h-[44px] rounded-md px-1 text-sm text-base-300 underline underline-offset-2 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-flame-400">Stop using my location</button>
+    <p id="condStopNote" aria-live="polite" class="hidden text-xs text-base-300 leading-snug">Your location will not be requested automatically.</p>
+  </div>
+
+  <p id="condPrivacy" class="text-xs text-base-400 leading-snug">Your browser reads your location only when you tap the button or have turned it on here before. It is rounded to about 1 km on your device, and only that rounded position goes to the National Weather Service.</p>
 
   <form id="condForm" class="hidden space-y-3" novalidate aria-labelledby="condFormTitle">
     <p id="condFormTitle" class="text-sm font-semibold text-white">Enter conditions</p>

@@ -3,11 +3,20 @@
  * cook-time engine, and the scheduler only ever hands it the cook window (meat
  * on to pull) through setWindow().
  *
- * Location is never requested on page load. If the browser has ALREADY granted
- * geolocation for this site (Permissions API), the forecast loads on its own;
- * otherwise, or when the Permissions API is missing, the user taps "Use my
- * location". Coordinates exist only as local variables between getPosition and
- * fetchConditions; nothing here stores or logs them.
+ * Location is not requested on page load unless the user has opted in. Two ways
+ * the forecast loads on its own:
+ *   - autoLocate is true (saved after a successful fetch): getPosition is called on
+ *     load even when the Permissions API says 'prompt'. iOS Safari, especially when
+ *     opened from another app, does not keep the geolocation grant across a reload,
+ *     so the browser may ask again; that is fine for someone who opted in.
+ *   - autoLocate was never decided and the browser has ALREADY granted geolocation.
+ * Otherwise the user taps "Use my location". A failed location request (denied,
+ * unavailable, timeout, unsupported) sets autoLocate to false, and so does the
+ * "Stop using my location" link. A false value also overrides a browser grant, so
+ * Stop sticks on browsers that remember it. Forecast-service failures (upstream,
+ * network, outside coverage) do not change the opt-in.
+ * Coordinates exist only as local variables between getPosition and
+ * fetchConditions; nothing here stores or logs them (autoLocate is a boolean).
  *
  * Dependencies are injectable so tests run with no network and no geolocation.
  */
@@ -27,6 +36,8 @@ const MESSAGES = {
 // Retrying cannot help when the browser has no geolocation or the place is outside coverage.
 const NO_RETRY = new Set(['unsupported', 'outside_coverage']);
 const LOADING = 'Finding your forecast';
+// Failures of the location request itself (not of the forecast service) withdraw the opt-in.
+const POSITION_ERRORS = new Set(['denied', 'unavailable', 'timeout', 'unsupported', 'invalid_coordinates']);
 
 export const MANUAL_LIMITS = {
   elevation: { min: -300, max: 15000, message: 'Enter an elevation from -300 to 15,000 ft.' },
@@ -83,7 +94,7 @@ export function initConditionsCard({ root = document, deps = {} } = {}) {
   const $ = (id) => root.getElementById(id);
   if (!$('conditionsCard')) return { setWindow() {}, getState: () => ({}), ready: Promise.resolve() };
 
-  const state = { status: 'idle', conditions: null, errorCode: null, window: null, formOpen: false };
+  const state = { status: 'idle', conditions: null, errorCode: null, window: null, formOpen: false, stopped: false };
 
   const show = (el, on) => el && el.classList.toggle('hidden', !on);
 
@@ -202,6 +213,12 @@ export function initConditionsCard({ root = document, deps = {} } = {}) {
     SECONDARY.forEach((c) => useBtn.classList.toggle(c, !primary));
     $('condManualBtn').textContent = manual ? 'Edit' : 'Enter manually';
 
+    const autoOn = readPrefs(d.storage).autoLocate === true;
+    const nws = ready && !manual;
+    show($('condAutoRow'), nws && !formOpen && (autoOn || state.stopped));
+    show($('condStopBtn'), autoOn);
+    show($('condStopNote'), !autoOn && state.stopped);
+
     show($('condForm'), formOpen);
     renderBody();
   }
@@ -210,22 +227,33 @@ export function initConditionsCard({ root = document, deps = {} } = {}) {
   async function load() {
     if (state.status === 'loading') return;
     state.formOpen = false;
+    state.stopped = false;
     state.status = 'loading';
     render();
+    const fail = (err) => {
+      state.status = 'error';
+      state.errorCode = err && typeof err.code === 'string' ? err.code : 'unavailable';
+      if (state.errorCode === 'invalid_coordinates') state.errorCode = 'unavailable';
+      if (POSITION_ERRORS.has(state.errorCode)) writePrefs({ autoLocate: false }, d.storage);
+    };
     try {
       // Coordinates live only in these two lines and are never stored.
       const pos = await d.getPosition({ timeoutMs: 10000 });
       const conditions = await d.fetchConditions(pos.lat, pos.lon);
       state.conditions = conditions;
       state.status = 'ready';
+      writePrefs({ autoLocate: true }, d.storage); // a boolean only, never coordinates
     } catch (err) {
-      state.status = 'error';
-      state.errorCode = err && typeof err.code === 'string' ? err.code : 'unavailable';
-      if (state.errorCode === 'invalid_coordinates') state.errorCode = 'unavailable';
+      fail(err);
     }
     render();
   }
   $('condUseBtn').addEventListener('click', load);
+  $('condStopBtn').addEventListener('click', () => {
+    writePrefs({ autoLocate: false }, d.storage);
+    state.stopped = true;
+    render();
+  });
 
   /* ---- manual form ---- */
   const FIELDS = { elevation: 'condElev', low: 'condLow', high: 'condHigh', wind: 'condWind' };
@@ -292,10 +320,16 @@ export function initConditionsCard({ root = document, deps = {} } = {}) {
   paintPrefs();
   render();
 
-  // Only a browser that has already granted location loads the forecast unprompted.
+  // Load on its own only for an opted-in user, or (when they never decided) a browser
+  // that has already granted location. A saved false wins over a browser grant.
   const ready = (async () => {
-    const perm = await d.permissionState();
-    if (perm === 'granted' && state.status === 'idle' && !state.formOpen) await load();
+    const { autoLocate } = readPrefs(d.storage);
+    if (autoLocate === true) {
+      await load();
+    } else if (autoLocate === null) {
+      const perm = await d.permissionState();
+      if (perm === 'granted' && state.status === 'idle' && !state.formOpen) await load();
+    }
   })();
 
   return {
