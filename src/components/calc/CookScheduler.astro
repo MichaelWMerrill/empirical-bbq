@@ -222,6 +222,28 @@ const defaultVisible = new Set(['weight']);
       radial-gradient(1200px 600px at 82% -12%, rgba(249, 115, 22, 0.14), transparent 60%),
       radial-gradient(950px 520px at -8% 108%, rgba(245, 158, 11, 0.09), transparent 55%);
   }
+  /* iOS Safari gives <input type="datetime-local"> an intrinsic width that can push it past the
+     edge of its card. min-width: 0 and max-width: 100% let it shrink with the card everywhere; the
+     iOS-only block (-webkit-touch-callout is supported by iOS Safari alone) drops the native chrome
+     that sets that width, left-aligns the value, and keeps a 44px touch target. */
+  body.page-scheduler #serveAt {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  @supports (-webkit-touch-callout: none) {
+    body.page-scheduler #serveAt {
+      -webkit-appearance: none;
+      appearance: none;
+      text-align: left;
+      min-height: 2.75rem;
+    }
+    body.page-scheduler #serveAt::-webkit-date-and-time-value {
+      text-align: left;
+      min-width: 0;
+    }
+  }
   body.page-scheduler input[type='range'] {
     -webkit-appearance: none;
     appearance: none;
