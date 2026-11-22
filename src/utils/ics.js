@@ -152,7 +152,7 @@ export function buildCookSteps(plan, inputs = {}, { includePrep = true, timeZone
 
   if (timed.has('wrap')) {
     if (isStallMethod) {
-      point('wrap', wrapTemp ? `📦 Wrap at ${wrapTemp}°F` : '📦 Wrap', timed.get('wrap'), `Start checking the internal temp well before this. ${ESTIMATE_NOTE}`, { estimate: true });
+      point('wrap', wrapTemp ? `📦 Wrap at ${wrapTemp}°F` : '📦 Wrap', timed.get('wrap'), 'Start checking the internal temp ahead of this time, since the real moment can come sooner.', { estimate: true });
     } else {
       point('wrap', '📦 Wrap in foil', timed.get('wrap'), 'Wrap now, as the fixed-time method calls for.'); // a fixed block (3-2-1 or 2-2-1): a time, not a temperature
     }

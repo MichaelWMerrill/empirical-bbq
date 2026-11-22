@@ -14,7 +14,8 @@
  *   - the alarm text is the full step title (it was the title without its emoji);
  *   - step wording now comes from buildCookSteps (for example "Pull & rest" is now the "Pull the meat" step).
  *   - then, on the author's review of the PR: the "Meat on" note carries the engine cook time again ("Estimated 14h 09m
- *     to a 202°F finish"), and the stall-method wrap note says to start checking the internal temp well before it.
+ *     to a 202°F finish"), and the stall-method wrap note tells the reader to start checking the internal temp ahead of the
+ *     time, since the real moment can come sooner (it no longer repeats the shared estimate note).
  * Same event set as before for this button (fire, meat on, wrap, sauce, pull, serve). Do not regenerate
  * this to make a refactor pass: a difference outside the list above means the file changed unintentionally.
  *
@@ -82,9 +83,9 @@ const EXPECTED = {
     "DTSTART:<serve-242.2m>",
     "DTEND:<serve-227.2m>",
     "SUMMARY:📦 Wrap at 160°F",
-    "DESCRIPTION:Start checking the internal temp well before this. Starts at an",
-    "  internal temperature\\, so this time is an estimate. Planned with Empirica",
-    " l BBQ (empiricalbbq.com/cook-scheduler)",
+    "DESCRIPTION:Start checking the internal temp ahead of this time\\, since the",
+    "  real moment can come sooner. Planned with Empirical BBQ (empiricalbbq.com",
+    " /cook-scheduler)",
     "SEQUENCE:0",
     "BEGIN:VALARM",
     "ACTION:DISPLAY",

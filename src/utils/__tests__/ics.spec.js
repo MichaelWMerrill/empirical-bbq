@@ -117,7 +117,7 @@ describe('buildCookSteps: pork shoulder, 8.5 lb (snapshot)', () => {
           "end": "2026-11-22T21:12:48.092Z",
           "estimate": true,
           "id": "wrap",
-          "note": "Start checking the internal temp well before this. Starts at an internal temperature, so this time is an estimate.",
+          "note": "Start checking the internal temp ahead of this time, since the real moment can come sooner.",
           "start": "2026-11-22T20:57:48.092Z",
           "title": "📦 Wrap at 160°F",
         },
@@ -187,7 +187,7 @@ describe('buildCookSteps: pork shoulder, 8.5 lb (snapshot)', () => {
     const steps = stepsFor(pork());
     expect(steps.filter((s) => s.estimate).map((s) => s.id)).toEqual(['stall', 'wrap', 'pull']);
     expect(byId(steps, 'pull').note).toBe('Pull when it probes tender near 202°F. This time is an estimate.');
-    expect(byId(steps, 'wrap').note).toContain(ESTIMATE_NOTE);
+    expect(byId(steps, 'stall').note).toContain(ESTIMATE_NOTE); // the shared estimate note stays on the stall step
     expect(ESTIMATE_NOTE).toBe('Starts at an internal temperature, so this time is an estimate.');
   });
 
@@ -255,9 +255,10 @@ describe('formatDuration', () => {
 });
 
 describe('buildCookSteps: the wrap note', () => {
-  test('stall-method wrap says to start checking well before it, then the estimate note', () => {
-    expect(byId(stepsFor(pork()), 'wrap').note).toBe(`Start checking the internal temp well before this. ${ESTIMATE_NOTE}`);
-    expect(byId(stepsFor(pork()), 'wrap').note).toBe('Start checking the internal temp well before this. Starts at an internal temperature, so this time is an estimate.');
+  test('stall-method wrap says to start checking ahead of the time, since the real moment can come sooner', () => {
+    expect(byId(stepsFor(pork()), 'wrap').note).toBe('Start checking the internal temp ahead of this time, since the real moment can come sooner.');
+    expect(byId(stepsFor(pork()), 'wrap').estimate).toBe(true); // still a "~" time; the note itself carries the hedge
+    expect(byId(stepsFor(pork()), 'wrap').note).not.toContain(ESTIMATE_NOTE);
   });
   test('the fixed-time ribs wrap is unchanged: a time, not an estimate', () => {
     const wrap = byId(stepsFor(ribs()), 'wrap');
@@ -514,9 +515,9 @@ describe('buildIcs', () => {
         "DTSTART:20261122T205748Z",
         "DTEND:20261122T211248Z",
         "SUMMARY:📦 Wrap at 160°F",
-        "DESCRIPTION:Start checking the internal temp well before this. Starts at an",
-        "  internal temperature\\, so this time is an estimate. Planned with Empirica",
-        " l BBQ (empiricalbbq.com/cook-scheduler)",
+        "DESCRIPTION:Start checking the internal temp ahead of this time\\, since the",
+        "  real moment can come sooner. Planned with Empirical BBQ (empiricalbbq.com",
+        " /cook-scheduler)",
         "SEQUENCE:0",
         "BEGIN:VALARM",
         "ACTION:DISPLAY",
