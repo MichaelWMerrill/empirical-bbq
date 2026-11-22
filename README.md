@@ -190,6 +190,30 @@ sub-project build — see [Workers Builds monorepo docs](https://developers.clou
 so a build there can't see anything outside that directory. `weightBoundsSync.spec.ts` runs
 from a full checkout and fails if the two ever drift apart.
 
+**Weather fields and cut** (migration `0002_add_weather_and_cut.sql`). Two kinds of weather data,
+told apart by `weather_source` (`typed`, `manual` or `nws_forecast`):
+
+| Column | Meaning |
+| --- | --- |
+| `ambient_temp_f`, `altitude_ft` | Unchanged: single point values the reader typed. `weather_source = 'typed'`. |
+| `ambient_temp_min_f`, `ambient_temp_max_f`, `ambient_temp_avg_f`, `wind_avg_mph` | The reader's own expected low, high and wind for the cook (`weather_source = 'manual'`). The average is the midpoint of the low and high. |
+| `dew_point_avg_f`, `wind_gust_max_mph`, `weather_hours_missing` | Reserved for forecast or observed weather. Always NULL today; no code writes them and `nws_forecast` is never set (see TODO.md, "Weather capture for cook logs"). |
+| `cut` | Pork shoulder (`bone_in`, `boneless`) and ribs (`spare`, `st_louis`, `baby_back`) only. No SQL CHECK: the Worker validates it against `server/cutIds.ts`, which `cutIdsSync.spec.ts` keeps equal to the registry's cut axis, so adding a cut never needs a migration. |
+
+The weather fields are set at cook start only (POST); PATCH does not accept them. Ranges are checked
+in the Worker (`WEATHER_RANGES` in `server/validation.ts`; a typo guard, not a physics claim). No
+location of any kind is stored. The rollback is `workers/cook-log-service/rollbacks/0002_rollback.sql`
+and lives outside `migrations/` on purpose, because wrangler applies every `.sql` file in that
+directory. Apply migrations to the local database first (`npx wrangler d1 migrations apply cook-log-db --local`).
+
+**Production migration history.** Production's `0001_create_cook_sessions.sql` was applied by hand, so
+`d1_migrations` was empty even though the table existed. On 2026-11-22 the table and both indexes were
+checked against `0001` (identical text), `0001` was recorded in `d1_migrations` with one insert, and
+`0002_add_weather_and_cut.sql` was then applied normally. Restore point taken just before:
+D1 Time Travel bookmark `0000000a-00000002-0000512b-f4f6b6a1154f5f1a0f638509845fb015`
+(`npx wrangler d1 time-travel restore cook-log-db --bookmark=<bookmark>`). From here on, use
+`migrations apply` for every change so `d1_migrations` stays accurate.
+
 **Deploying**:
 
 - [x] D1 database created (`cook-log-db`) and the migration applied — `wrangler.jsonc`'s

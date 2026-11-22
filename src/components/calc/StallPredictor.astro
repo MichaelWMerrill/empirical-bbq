@@ -216,7 +216,7 @@ const heading = protein.meta.id === 'beef_brisket' ? 'Stall Predictor' : `${prot
         </div>
       </div>
 
-      <CookLogCapture />
+      <CookLogCapture protein={protein} />
 
       <GearModule tool="stall" state={{ protein: protein.meta.id, cut: tInit.cut, pit: 'offset_smoker' }} />
     </section>

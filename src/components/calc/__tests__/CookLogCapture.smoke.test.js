@@ -15,6 +15,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import CookLogCapture from '../CookLogCapture.astro';
+import { PROTEINS } from '../../../utils/proteinRegistry.js';
 import { mountComponent } from './mount.js';
 import { initCookLogCapture } from '../cookLogCapture.controller.js';
 
@@ -171,5 +172,80 @@ describe('CookLogCapture smoke', () => {
     expect(localStorage.getItem('pitmaster_cook_log_client_id')).toBeNull();
     expect(document.getElementById('cookLogDeniedLink').hidden).toBe(false);
     expect(document.getElementById('cookLogStartForm').hidden).toBe(true);
+  });
+
+  describe('weather fields and cut', () => {
+    const startCook = async (proteinId, stallControls = fakeStallControls, fill = () => {}) => {
+      await mountComponent(CookLogCapture, { protein: PROTEINS[proteinId] });
+      fetch.mockResolvedValue({ ok: true, status: 201, json: () => Promise.resolve({ id: 'server-id-1' }) });
+      initCookLogCapture(proteinId, '2026.3', stallControls);
+      await tick();
+      document.getElementById('cookLogOptIn').click();
+      await tick();
+      fill();
+      document.getElementById('cookLogStartForm').dispatchEvent(new Event('submit', { cancelable: true }));
+      await tick();
+      const call = fetch.mock.calls.find(([url, o]) => url === '/api/cook-logs' && o.method === 'POST');
+      return call ? JSON.parse(call[1].body) : null;
+    };
+    const set = (id, v) => (document.getElementById(id).value = v);
+
+    it('typed ambient and altitude keep their meaning and set weather_source typed', async () => {
+      const payload = await startCook('beef_brisket', fakeStallControls, () => {
+        set('cookLogAmbientTemp', '71');
+        set('cookLogAltitude', '5200');
+      });
+      expect(payload).toMatchObject({ ambient_temp_f: 71, altitude_ft: 5200, weather_source: 'typed' });
+      expect(payload).not.toHaveProperty('ambient_temp_avg_f');
+      expect(payload).not.toHaveProperty('cut');
+    });
+
+    it('a manual low/high/wind sends min, max, the midpoint and source manual', async () => {
+      const payload = await startCook('beef_brisket', fakeStallControls, () => {
+        set('cookLogTempLow', '38');
+        set('cookLogTempHigh', '62');
+        set('cookLogWind', '8');
+      });
+      expect(payload).toMatchObject({ ambient_temp_min_f: 38, ambient_temp_max_f: 62, ambient_temp_avg_f: 50, wind_avg_mph: 8, weather_source: 'manual' });
+      expect(payload).not.toHaveProperty('ambient_temp_f');
+    });
+
+    it('sends no weather fields and no source when none were entered, and never any location', async () => {
+      const payload = await startCook('beef_brisket');
+      expect(payload).not.toHaveProperty('weather_source');
+      for (const k of Object.keys(payload)) expect(k).not.toMatch(/lat|lon|city|state|zip|location|zone|postal/i);
+    });
+
+    it('a low above the high stops the submit with a message and opens the details', async () => {
+      const payload = await startCook('beef_brisket', fakeStallControls, () => {
+        set('cookLogTempLow', '70');
+        set('cookLogTempHigh', '60');
+      });
+      expect(payload).toBeNull();
+      expect(document.getElementById('cookLogStatus').textContent).toMatch(/low/i);
+      expect(document.getElementById('cookLogOptionalDetails').hidden).toBe(false);
+    });
+
+    it('brisket and turkey have no Cut control; pork shoulder and ribs build it from the registry', async () => {
+      for (const id of ['beef_brisket', 'turkey']) {
+        await mountComponent(CookLogCapture, { protein: PROTEINS[id] });
+        expect(document.getElementById('cookLogCut'), id).toBeNull();
+      }
+      await mountComponent(CookLogCapture, { protein: PROTEINS.pork_shoulder });
+      expect([...document.getElementById('cookLogCut').options].map((o) => o.value)).toEqual(['', 'bone_in', 'boneless']);
+      await mountComponent(CookLogCapture, { protein: PROTEINS.pork_ribs });
+      expect([...document.getElementById('cookLogCut').options].map((o) => o.value)).toEqual(['', 'spare', 'st_louis', 'baby_back']);
+    });
+
+    it('ribs seed the cut from the calculator and send it; pork shoulder sends the chosen cut', async () => {
+      const ribs = await startCook('pork_ribs', { ...fakeStallControls, state: { ...fakeStallControls.state, weight: 3, cut: 'st_louis' } });
+      expect(ribs.cut).toBe('st_louis');
+      fetch.mockReset();
+      const shoulder = await startCook('pork_shoulder', fakeStallControls, () => set('cookLogCut', 'boneless'));
+      expect(shoulder.cut).toBe('boneless');
+      fetch.mockReset();
+      const none = await startCook('pork_shoulder');
+      expect(none).not.toHaveProperty('cut');
+    });
   });
 });
