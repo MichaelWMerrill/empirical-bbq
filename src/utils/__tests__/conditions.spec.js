@@ -346,14 +346,49 @@ describe('pressure and boiling point', () => {
 });
 
 describe('isolation', () => {
-  test('no engine, registry or calculator controller imports conditions.js (the conditions card controller may)', () => {
-    const utils = join(dirname(fileURLToPath(import.meta.url)), '..');
-    const calc = join(utils, '..', 'components', 'calc');
-    const files = [
-      ...readdirSync(utils).filter((f) => /Engine\.js$/.test(f) || f === 'proteinRegistry.js').map((f) => join(utils, f)),
-      ...readdirSync(calc).filter((f) => /\.controller\.js$/.test(f) && !f.startsWith('conditions')).map((f) => join(calc, f)),
-    ];
-    expect(files.length).toBeGreaterThan(5);
-    for (const f of files) expect(readFileSync(f, 'utf8'), f).not.toMatch(/conditions(\.js)?['"]/);
+  // Conditions are display-only. Exactly these files may import conditions.js; every
+  // other source file (engines, registry, scheduler, calculators, pages) may not. The
+  // list is explicit on purpose: a file cannot get in by choosing a name that starts
+  // with "conditions". Adding to it is a deliberate, reviewed change.
+  const ALLOWED_IMPORTERS = [
+    'src/components/calc/conditionsCard.controller.js',
+    'src/components/calc/conditionsCard.view.js',
+  ];
+
+  const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
+  const walk = (dir) =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+      const p = join(dir, e.name);
+      if (e.isDirectory()) return e.name === '__tests__' || e.name === 'node_modules' ? [] : walk(p);
+      return /\.(js|mjs|ts|astro)$/.test(e.name) ? [p] : [];
+    });
+  const rel = (p) => p.slice(root.length + 1).split('\\').join('/');
+  // Any import or dynamic import whose specifier ends in /conditions or /conditions.js.
+  const importsConditions = (src) => /(?:from\s*|import\s*\(\s*|import\s+)['"][^'"]*\/conditions(?:\.js)?['"]/.test(src);
+
+  const sources = walk(join(root, 'src')).filter((f) => rel(f) !== 'src/utils/conditions.js');
+  const importers = sources.filter((f) => importsConditions(readFileSync(f, 'utf8'))).map(rel).sort();
+
+  test('only the allowlisted conditions card files import conditions.js', () => {
+    expect(sources.length).toBeGreaterThan(30);
+    for (const f of importers) expect(ALLOWED_IMPORTERS, `${f} is not allowed to import conditions.js`).toContain(f);
+  });
+
+  test('the allowlist is exact: every entry exists and imports it, with no dormant exemptions', () => {
+    expect(importers).toEqual([...ALLOWED_IMPORTERS].sort());
+  });
+
+  test('the engines, registry and scheduler controller are not importers', () => {
+    for (const f of ['src/utils/stallEngine.js', 'src/utils/proteinRegistry.js', 'src/utils/cookMilestones.js', 'src/components/calc/cookScheduler.controller.js']) {
+      expect(importers, f).not.toContain(f);
+    }
+  });
+
+  test('the matcher catches the forms it is meant to', () => {
+    expect(importsConditions("import { x } from '../../utils/conditions.js';")).toBe(true);
+    expect(importsConditions("import { x } from '../utils/conditions';")).toBe(true);
+    expect(importsConditions("const m = await import('./utils/conditions.js');")).toBe(true);
+    expect(importsConditions("import './conditions.js';")).toBe(true);
+    expect(importsConditions("import { x } from './conditionsCard.view.js';")).toBe(false);
   });
 });

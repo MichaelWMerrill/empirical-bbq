@@ -10,7 +10,10 @@ import { computeModel, FINISH_TEMP, dangerZoneHours, dangerZoneNote, cookDuratio
 import { clampNum, enumParam, getParams, writeParams, wireCopyButton } from '../../utils/shareLink.js';
 import { buildMilestones, PREHEAT_HOURS as PREHEAT_HRS } from '../../utils/cookMilestones.js';
 
-export function initCookScheduler(protein = PROTEINS.beef_brisket) {
+// `onSchedule` is a one-way, display-only hook: after each render it is called with
+// the cook window ({ start: meat on, end: pull }) or null. Nothing flows back, and
+// a throwing listener never affects the schedule.
+export function initCookScheduler(protein = PROTEINS.beef_brisket, { onSchedule } = {}) {
   const thermal = protein.thermal;
   const finishTemp = thermal.finish_temp;
   const pitTemps = Object.keys(thermal.cook_temperatures); // registry-driven, per-protein
@@ -114,7 +117,7 @@ export function initCookScheduler(protein = PROTEINS.beef_brisket) {
       serve: { icon: '🍽️', title: 'Serve', sub: 'Slice against the grain and eat.' },
     };
     const milestones = ms.milestones.map(({ id, at }) => ({ ...copy[id], at }));
-    return { milestones, model: m, fireUp: ms.fireUp, serve: ms.serve };
+    return { milestones, model: m, fireUp: ms.fireUp, serve: ms.serve, meatOn: ms.meatOn, pull: ms.pull };
   }
 
   // Fixed 3-2-1 (or 2-2-1) method for ribs: unwrapped smoke → wrapped → sauced.
@@ -131,7 +134,7 @@ export function initCookScheduler(protein = PROTEINS.beef_brisket) {
       serve: { icon: '🍽️', title: 'Serve', sub: 'Cut between the bones and eat.' },
     };
     const milestones = ms.milestones.map(({ id, at }) => ({ ...copy[id], at }));
-    return { milestones, model: { totalTime: total }, fireUp: ms.fireUp, serve: ms.serve };
+    return { milestones, model: { totalTime: total }, fireUp: ms.fireUp, serve: ms.serve, meatOn: ms.meatOn, pull: ms.pull };
   }
 
   function render() {
@@ -159,6 +162,12 @@ export function initCookScheduler(protein = PROTEINS.beef_brisket) {
     }
 
     const sched = computeSchedule();
+    try {
+      // Copies, so a listener can never alter the scheduler's own Date objects.
+      onSchedule?.(sched ? { start: new Date(sched.meatOn), end: new Date(sched.pull) } : null);
+    } catch {
+      /* display-only listener: never let it affect the schedule */
+    }
     const timeline = $('timeline');
     const warn = $('warnBox');
 

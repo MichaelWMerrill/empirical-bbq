@@ -9,6 +9,8 @@
 import { PROTEINS } from '../../utils/proteinRegistry.js';
 import ProteinSelector from './ProteinSelector.astro';
 import GearModule from './GearModule.astro';
+import ConditionsCard from './ConditionsCard.astro';
+import ConditionsStrip from './ConditionsStrip.astro';
 import SiteFooter from '../SiteFooter.astro';
 
 export interface Props {
@@ -168,6 +170,8 @@ const defaultVisible = new Set(['weight']);
             <p id="warnBox" class="hidden mt-4 rounded-lg bg-amber-500/10 ring-1 ring-amber-500/40 px-3 py-2 text-[13px] text-amber-200"></p>
           </div>
 
+          <ConditionsStrip />
+
           <div class="rounded-2xl bg-base-800/70 ring-1 ring-base-700 shadow-xl shadow-black/40 p-5 sm:p-6">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-sm font-semibold text-white">Cook Timeline</h3>
@@ -178,6 +182,8 @@ const defaultVisible = new Set(['weight']);
             </div>
             <ol id="timeline" class="relative border-l border-base-700 ml-2 space-y-6"></ol>
           </div>
+
+          <ConditionsCard />
 
           <GearModule tool="scheduler" state={{ protein: protein.meta.id, pit: 'offset_smoker' }} />
         </section>
@@ -276,6 +282,7 @@ const defaultVisible = new Set(['weight']);
 
 <script>
   import { initCookScheduler } from './cookScheduler.controller.js';
+  import { initConditionsCard } from './conditionsCard.controller.js';
   import { PROTEINS } from '../../utils/proteinRegistry.js';
   import { proteinParam } from '../../utils/shareLink.js';
   document.addEventListener('DOMContentLoaded', () => {
@@ -286,6 +293,8 @@ const defaultVisible = new Set(['weight']);
       /* ignore */
     }
     const id = proteinParam(raw, Object.keys(PROTEINS));
-    initCookScheduler(PROTEINS[id]);
+    // The card only ever receives the cook window (meat on to pull); nothing flows back.
+    const conditionsCard = initConditionsCard();
+    initCookScheduler(PROTEINS[id], { onSchedule: conditionsCard.setWindow });
   });
 </script>
