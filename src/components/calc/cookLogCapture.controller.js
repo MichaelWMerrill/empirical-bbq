@@ -19,6 +19,7 @@
 import '../../../public/sw-queue-utils.js';
 import { hasConsent, getConsentState, setConsent, getAnonClientId } from '../../utils/cookLogConsent.js';
 import { postCookLog, patchCookLog, drainQueueNow } from '../../utils/cookLogClient.js';
+import { buildWeatherFields } from '../../utils/cookLogWeather.js';
 
 // Calculator enum -> cook-log enum. Only used to seed sensible defaults in
 // the collapsed "optional details" section — never auto-submitted without
@@ -111,8 +112,21 @@ export function initCookLogCapture(proteinTypeId, modelVersion, stallControls) {
     const weightSource = $('cookLogWeightSource').value;
     const targetPitTemp = $('cookLogTargetPitTemp').value;
     const cookMethod = $('cookLogCookMethod').value;
-    const ambientTemp = $('cookLogAmbientTemp').value;
-    const altitude = $('cookLogAltitude').value;
+    const cut = $('cookLogCut')?.value; // only on proteins with a cut (pork shoulder, ribs)
+    const weather = buildWeatherFields({
+      ambient: $('cookLogAmbientTemp').value,
+      altitude: $('cookLogAltitude').value,
+      low: $('cookLogTempLow')?.value,
+      high: $('cookLogTempHigh')?.value,
+      wind: $('cookLogWind')?.value,
+    });
+    if (weather.error) {
+      // Show the problem where the reader can see it: the weather fields live in the collapsed details.
+      const details = $('cookLogOptionalDetails');
+      if (details) details.hidden = false;
+      setStatus(weather.error);
+      return;
+    }
 
     const payload = {
       anon_client_id: getAnonClientId(),
@@ -125,8 +139,8 @@ export function initCookLogCapture(proteinTypeId, modelVersion, stallControls) {
       start_time: new Date().toISOString(),
       ...(cookMethod && { cook_method: cookMethod }),
       ...(targetPitTemp && { target_pit_temp_f: parseInt(targetPitTemp, 10) }),
-      ...(ambientTemp && { ambient_temp_f: parseInt(ambientTemp, 10) }),
-      ...(altitude && { altitude_ft: parseInt(altitude, 10) }),
+      ...(cut && { cut }),
+      ...weather.fields, // typed/manual weather and its source; never a location
     };
 
     setStatus('Starting…');
@@ -206,6 +220,10 @@ export function initCookLogCapture(proteinTypeId, modelVersion, stallControls) {
   /* ---------- Optional-details defaults (seeded, never auto-submitted) ---------- */
   const pitTempInput = $('cookLogTargetPitTemp');
   if (pitTempInput && stallControls.state.pitTemp) pitTempInput.value = stallControls.state.pitTemp;
+  const cutSelect = $('cookLogCut');
+  if (cutSelect && stallControls.state.cut && [...cutSelect.options].some((o) => o.value === stallControls.state.cut)) {
+    cutSelect.value = stallControls.state.cut; // ribs: the cut chosen in the calculator
+  }
   const cookMethodSelect = $('cookLogCookMethod');
   if (cookMethodSelect && PIT_TO_COOK_METHOD[stallControls.state.pit]) {
     cookMethodSelect.value = PIT_TO_COOK_METHOD[stallControls.state.pit];

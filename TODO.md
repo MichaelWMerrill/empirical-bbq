@@ -134,6 +134,23 @@ After the extensionless-canonical migration deploys, do these by hand:
       itself (manual, human-approved) still pending, along with final
       consent copy.
 - [ ] Email capture / ESP integration (= #6 above).
+- [ ] Weather capture for cook logs: backlog, not started. Cook logs store only what
+      the reader typed (`weather_source` = `typed` or `manual`); the forecast-or-observed
+      columns (`dew_point_avg_f`, `wind_gust_max_mph`, `weather_hours_missing`, and
+      `weather_source = 'nws_forecast'`) are in the table and stay NULL. A finish-time
+      summary from `conditions.js` would be wrong: the NWS hourly forecast only covers the
+      current hour forward, and the 30 minute sessionStorage cache will be long gone at the
+      end of a cook, so most of the cook would read as missing. Two options to evaluate:
+      (a) at cook start, store the hourly forecast slice for the cook window locally (no
+      coordinates) and summarize it at finish; (b) at finish, fetch measured station
+      observations for the cook window from the NWS observations endpoint, which gives
+      observed data instead of forecast. Either needs the capture UI and the conditions
+      card to share data across pages (they live on different pages today), a PATCH path for
+      the weather fields, and the privacy page and consent copy updated first (Prompt 7).
+- [ ] Brisket weight cap 18 to 20 lb (separate PR after the cook-log weather PR): the
+      stall tool's brisket axis allows 4 to 20 lb but the cook-log Worker rejects over 18.
+      Change `weight_bounds` in `proteinRegistry.js` and `weightBounds.ts` together;
+      `weightBoundsSync.spec.ts` ties them.
 - [ ] Serve time follows the cook location's time zone: backlog, not started.
       Today the scheduler's "When do you want to eat?" box is read in the DEVICE's
       time zone, and both the timeline and the Add to calendar panel show device-local

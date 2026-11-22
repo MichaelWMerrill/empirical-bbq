@@ -7,7 +7,13 @@
  *
  * Consent copy below is a DRAFT — flagged in the PR description as pending
  * Mike's final wording before this ships broadly.
+ *
+ * `protein` (the registry entry) is optional: when it has a cut axis (pork shoulder, ribs) the optional
+ * details get a Cut select built from the registry's own options, so a new cut shows up here with no edit.
  */
+const { protein } = Astro.props;
+const cutAxis = [...(protein?.yield?.axes ?? []), ...(protein?.thermal?.axes ?? [])].find((a) => a.id === 'cut');
+const cutOptions = cutAxis?.options ?? [];
 ---
 
 <div class="rounded-2xl bg-slate-900 ring-1 ring-slate-800 shadow-xl shadow-black/40 p-5 sm:p-6 space-y-4" data-cook-log-capture>
@@ -71,6 +77,15 @@
           <option value="other">Other</option>
         </select>
       </div>
+      {cutOptions.length > 0 && (
+        <div>
+          <label for="cookLogCut" class="block text-xs font-medium text-slate-300 mb-1.5">{cutAxis.label}</label>
+          <select id="cookLogCut" class="w-full rounded-lg bg-slate-800 ring-1 ring-slate-700 text-white text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-flame-500">
+            <option value="">—</option>
+            {cutOptions.map((o) => <option value={o.value}>{o.label}</option>)}
+          </select>
+        </div>
+      )}
       <div>
         <label for="cookLogAmbientTemp" class="block text-xs font-medium text-slate-300 mb-1.5">Ambient temp (°F)</label>
         <input id="cookLogAmbientTemp" type="number" inputmode="numeric" class="w-full rounded-lg bg-slate-800 ring-1 ring-slate-700 text-white text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-flame-500" />
@@ -79,6 +94,23 @@
         <label for="cookLogAltitude" class="block text-xs font-medium text-slate-300 mb-1.5">Altitude (ft)</label>
         <input id="cookLogAltitude" type="number" inputmode="numeric" class="w-full rounded-lg bg-slate-800 ring-1 ring-slate-700 text-white text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-flame-500" />
       </div>
+      <fieldset class="space-y-2">
+        <legend class="block text-xs font-medium text-slate-300 mb-1">Weather during the cook <span class="font-normal text-slate-500">(you enter it; nothing is looked up)</span></legend>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label for="cookLogTempLow" class="block text-[11px] text-slate-400 mb-1">Low (°F)</label>
+            <input id="cookLogTempLow" type="number" inputmode="numeric" class="w-full rounded-lg bg-slate-800 ring-1 ring-slate-700 text-white text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-flame-500" />
+          </div>
+          <div>
+            <label for="cookLogTempHigh" class="block text-[11px] text-slate-400 mb-1">High (°F)</label>
+            <input id="cookLogTempHigh" type="number" inputmode="numeric" class="w-full rounded-lg bg-slate-800 ring-1 ring-slate-700 text-white text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-flame-500" />
+          </div>
+          <div>
+            <label for="cookLogWind" class="block text-[11px] text-slate-400 mb-1">Wind (mph)</label>
+            <input id="cookLogWind" type="number" inputmode="numeric" class="w-full rounded-lg bg-slate-800 ring-1 ring-slate-700 text-white text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-flame-500" />
+          </div>
+        </div>
+      </fieldset>
     </div>
 
     <button type="submit" class="w-full rounded-lg bg-amber-500 hover:bg-amber-400 text-base-900 font-bold text-xs px-4 py-2.5 transition-colors">

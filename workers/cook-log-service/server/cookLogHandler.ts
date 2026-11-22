@@ -63,8 +63,10 @@ export async function handleCreateCookLog(request: Request, env: CookLogEnv): Pr
       `INSERT INTO cook_sessions (
         id, anon_client_id, protein_type, model_version, weight_lb, weight_source,
         cook_method, target_pit_temp_f, ambient_temp_f, altitude_ft, start_time,
-        predicted_cook_minutes, consented_at, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        predicted_cook_minutes, consented_at, created_at, updated_at,
+        ambient_temp_min_f, ambient_temp_max_f, ambient_temp_avg_f, dew_point_avg_f,
+        wind_avg_mph, wind_gust_max_mph, weather_hours_missing, weather_source, cut
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
       .bind(
         id,
@@ -82,6 +84,15 @@ export async function handleCreateCookLog(request: Request, env: CookLogEnv): Pr
         data.consented_at,
         now,
         now,
+        data.ambient_temp_min_f,
+        data.ambient_temp_max_f,
+        data.ambient_temp_avg_f,
+        data.dew_point_avg_f,
+        data.wind_avg_mph,
+        data.wind_gust_max_mph,
+        data.weather_hours_missing,
+        data.weather_source,
+        data.cut,
       )
       .run();
   } catch (err) {

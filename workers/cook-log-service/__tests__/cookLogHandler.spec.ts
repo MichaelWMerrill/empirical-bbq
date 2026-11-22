@@ -45,6 +45,15 @@ class FakeStatement implements D1PreparedStatement {
         'consented_at',
         'created_at',
         'updated_at',
+        'ambient_temp_min_f',
+        'ambient_temp_max_f',
+        'ambient_temp_avg_f',
+        'dew_point_avg_f',
+        'wind_avg_mph',
+        'wind_gust_max_mph',
+        'weather_hours_missing',
+        'weather_source',
+        'cut',
       ];
       const row: Record<string, unknown> = {};
       columns.forEach((col, i) => (row[col] = this.values[i]));
@@ -200,5 +209,110 @@ describe('handlePatchCookLog', () => {
       'does-not-exist',
     );
     expect(patchRes.status).toBe(404);
+  });
+});
+
+describe('weather fields and cut (create)', () => {
+  const rowOf = (env: CookLogEnv) => (env.DB as FakeD1).rows[0];
+  const manualWeather = {
+    weather_source: 'manual',
+    ambient_temp_min_f: 38,
+    ambient_temp_max_f: 62,
+    ambient_temp_avg_f: 50,
+    wind_avg_mph: 8,
+  };
+
+  it('stores manual weather and the source, leaving the NWS-only columns null', async () => {
+    const env = makeEnv();
+    const res = await handleCreateCookLog(postRequest({ ...validCreateBody, altitude_ft: 5200, ...manualWeather }), env);
+    expect(res.status).toBe(201);
+    expect(rowOf(env)).toMatchObject({ ...manualWeather, altitude_ft: 5200, dew_point_avg_f: null, wind_gust_max_mph: null, weather_hours_missing: null });
+  });
+
+  it('keeps ambient_temp_f as a typed point value, separate from ambient_temp_avg_f', async () => {
+    const env = makeEnv();
+    await handleCreateCookLog(postRequest({ ...validCreateBody, ambient_temp_f: 71, weather_source: 'typed' }), env);
+    expect(rowOf(env)).toMatchObject({ ambient_temp_f: 71, ambient_temp_avg_f: null, weather_source: 'typed' });
+  });
+
+  it('accepts a request with none of the new fields (older clients and queued requests)', async () => {
+    const env = makeEnv();
+    expect((await handleCreateCookLog(postRequest(validCreateBody), env)).status).toBe(201);
+    expect(rowOf(env)).toMatchObject({ weather_source: null, cut: null, ambient_temp_avg_f: null });
+  });
+
+  it.each([
+    ['ambient_temp_f', -41],
+    ['ambient_temp_f', 131],
+    ['ambient_temp_min_f', 200],
+    ['ambient_temp_avg_f', -90.5],
+    ['altitude_ft', -301],
+    ['altitude_ft', 14501],
+    ['wind_avg_mph', -1],
+    ['wind_gust_max_mph', 151],
+    ['dew_point_avg_f', 101],
+    ['weather_hours_missing', 73],
+  ])('rejects %s = %s as out of range', async (field, value) => {
+    const res = await handleCreateCookLog(postRequest({ ...validCreateBody, [field]: value }), makeEnv());
+    expect(res.status).toBe(400);
+  });
+
+  it('accepts the range boundaries', async () => {
+    const res = await handleCreateCookLog(
+      postRequest({ ...validCreateBody, ambient_temp_f: -40, altitude_ft: 14500, wind_avg_mph: 0, wind_gust_max_mph: 150 }),
+      makeEnv(),
+    );
+    expect(res.status).toBe(201);
+  });
+
+  it('rejects a low above the high', async () => {
+    const res = await handleCreateCookLog(postRequest({ ...validCreateBody, ambient_temp_min_f: 70, ambient_temp_max_f: 60 }), makeEnv());
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects a non-integer for an integer field and an unknown weather_source', async () => {
+    expect((await handleCreateCookLog(postRequest({ ...validCreateBody, ambient_temp_min_f: 40.5 }), makeEnv())).status).toBe(400);
+    expect((await handleCreateCookLog(postRequest({ ...validCreateBody, weather_source: 'station' }), makeEnv())).status).toBe(400);
+  });
+
+  it('accepts a cut that belongs to the protein and stores it', async () => {
+    const env = makeEnv();
+    const res = await handleCreateCookLog(postRequest({ ...validCreateBody, protein_type: 'pork_ribs', weight_lb: 3, cut: 'st_louis' }), env);
+    expect(res.status).toBe(201);
+    expect(rowOf(env).cut).toBe('st_louis');
+  });
+
+  it("rejects another protein's cut, an unknown cut, and any cut for brisket or turkey", async () => {
+    const shoulder = { ...validCreateBody, protein_type: 'pork_shoulder', weight_lb: 8 };
+    expect((await handleCreateCookLog(postRequest({ ...shoulder, cut: 'spare' }), makeEnv())).status).toBe(400);
+    expect((await handleCreateCookLog(postRequest({ ...shoulder, cut: 'butt' }), makeEnv())).status).toBe(400);
+    expect((await handleCreateCookLog(postRequest({ ...validCreateBody, cut: 'boneless' }), makeEnv())).status).toBe(400);
+    expect((await handleCreateCookLog(postRequest({ ...validCreateBody, protein_type: 'turkey', weight_lb: 14, cut: 'bone_in' }), makeEnv())).status).toBe(400);
+  });
+});
+
+describe('weather range checks (patch)', () => {
+  it('range-checks ambient_temp_f and altitude_ft on update, and still accepts valid values', async () => {
+    const env = makeEnv();
+    const created = (await (await handleCreateCookLog(postRequest(validCreateBody), env)).json()) as { id: string };
+    const patch = (body: unknown) => handlePatchCookLog(patchRequest(created.id, { anon_client_id: 'client-1', ...(body as object) }), env, created.id);
+    expect((await patch({ ambient_temp_f: 500 })).status).toBe(400);
+    expect((await patch({ altitude_ft: 99999 })).status).toBe(400);
+    expect((await patch({ ambient_temp_f: 68, altitude_ft: 5200 })).status).toBe(200);
+  });
+
+  it('does not accept the new weather fields or cut on update (set at cook start only)', async () => {
+    const env = makeEnv();
+    const created = (await (await handleCreateCookLog(postRequest(validCreateBody), env)).json()) as { id: string };
+    const res = await handlePatchCookLog(
+      patchRequest(created.id, { anon_client_id: 'client-1', weather_source: 'manual', cut: 'spare', finish_time: '2026-09-06T20:00:00.000Z' }),
+      env,
+      created.id,
+    );
+    expect(res.status).toBe(200);
+    const row = (env.DB as FakeD1).rows[0];
+    expect(row.weather_source).toBeNull();
+    expect(row.cut).toBeNull();
+    expect(row.finish_time).toBe('2026-09-06T20:00:00.000Z');
   });
 });
