@@ -9,6 +9,7 @@ import { PROTEINS } from '../../utils/proteinRegistry.js';
 import { computeModel, FINISH_TEMP, dangerZoneHours, dangerZoneNote, cookDuration } from '../../utils/stallEngine.js';
 import { clampNum, enumParam, getParams, writeParams, wireCopyButton } from '../../utils/shareLink.js';
 import { buildMilestones, PREHEAT_HOURS as PREHEAT_HRS } from '../../utils/cookMilestones.js';
+import { buildCookSteps, buildIcs, planId } from '../../utils/ics.js';
 
 // `onSchedule` is a one-way, display-only hook: after each render it is called with
 // the cook window ({ start: meat on, end: pull }) or null. Nothing flows back, and
@@ -85,18 +86,22 @@ export function initCookScheduler(protein = PROTEINS.beef_brisket, { onSchedule 
   function computeSchedule() {
     const serve = state.serveAt ? new Date(state.serveAt) : null;
     if (!serve || isNaN(serve.getTime())) return null;
-    const d = cookDuration(protein, {
-      weight: state.weight,
-      pitTemp: state.pitTemp,
-      pit: state.pit,
-      wrap: state.wrap,
-      wrapTemp: state.wrapTemp,
-      climate: state.climate,
-      cut: state.cut,
-    });
-    const ms = buildMilestones({ duration: d, inputs: { rest: state.rest, wrap: state.wrap, wrapTemp: state.wrapTemp }, serve });
+    const d = cookDuration(protein, engineState());
+    const ms = buildMilestones({ duration: d, inputs: milestoneInputs(), serve });
     return d.method === 'method_321' ? build321(ms, d) : buildStall(ms, d);
   }
+
+  // The inputs the (pure) cook-time and milestone functions take, shared with the calendar download.
+  const engineState = () => ({
+    weight: state.weight,
+    pitTemp: state.pitTemp,
+    pit: state.pit,
+    wrap: state.wrap,
+    wrapTemp: state.wrapTemp,
+    climate: state.climate,
+    cut: state.cut,
+  });
+  const milestoneInputs = () => ({ rest: state.rest, wrap: state.wrap, wrapTemp: state.wrapTemp });
 
   // Stall-model back-calc (brisket / pork).
   function buildStall(ms, d) {
@@ -231,48 +236,25 @@ export function initCookScheduler(protein = PROTEINS.beef_brisket, { onSchedule 
     updateShareUrl();
   }
 
-  /* ---- .ics generation ---- */
+  /* ---- .ics download ----
+   * The text comes from src/utils/ics.js. This button keeps the event set it always had (fire up, meat on,
+   * wrap, sauce, pull, serve); the review-first Add to calendar panel (Prompt 5) replaces it. */
   const pad = (n) => String(n).padStart(2, '0');
-  const icsDate = (d) =>
-    `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
-  const icsEscape = (s) => String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
-
-  function buildIcs(sched) {
-    const now = icsDate(new Date());
-    const lines = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//Empirical BBQ//Cook Scheduler//EN',
-      'CALSCALE:GREGORIAN',
-      'METHOD:PUBLISH',
-    ];
-    sched.milestones.forEach((ms, i) => {
-      const start = ms.at;
-      const end = new Date(start.getTime() + 5 * 60 * 1000); // 5-min marker
-      lines.push(
-        'BEGIN:VEVENT',
-        `UID:empiricalbbq-${start.getTime()}-${i}@empiricalbbq.com`,
-        `DTSTAMP:${now}`,
-        `DTSTART:${icsDate(start)}`,
-        `DTEND:${icsDate(end)}`,
-        `SUMMARY:${icsEscape(ms.icon + ' ' + ms.title)}`,
-        `DESCRIPTION:${icsEscape(ms.sub + ' Planned with Empirical BBQ (empiricalbbq.com/cook-scheduler)')}`,
-        'BEGIN:VALARM',
-        'ACTION:DISPLAY',
-        `DESCRIPTION:${icsEscape(ms.title)}`,
-        'TRIGGER:-PT10M',
-        'END:VALARM',
-        'END:VEVENT'
-      );
-    });
-    lines.push('END:VCALENDAR');
-    return lines.join('\r\n');
-  }
+  const LEGACY_STEP_IDS = new Set(['fire', 'on', 'wrap', 'sauce', 'pull', 'serve']);
 
   function downloadIcs() {
-    const sched = computeSchedule();
-    if (!sched) return;
-    const blob = new Blob([buildIcs(sched)], { type: 'text/calendar;charset=utf-8' });
+    const serve = state.serveAt ? new Date(state.serveAt) : null;
+    if (!serve || isNaN(serve.getTime())) return;
+    const duration = cookDuration(protein, engineState());
+    const plan = buildMilestones({ duration, inputs: milestoneInputs(), serve });
+    const steps = buildCookSteps(plan, { finishTemp, pitTemp: state.pitTemp, wrapTemp: state.wrapTemp, totalTime: duration.totalTime }, { includePrep: false }).filter((st) =>
+      LEGACY_STEP_IDS.has(st.id)
+    );
+    const id = planId(
+      { protein: protein.meta.id, weight: state.weight, cut: state.cut, pitTemp: state.pitTemp, wrap: state.wrap, wrapTemp: state.wrapTemp },
+      serve.toISOString()
+    );
+    const blob = new Blob([buildIcs(steps, { planId: id, now: Date.now() })], { type: 'text/calendar;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
