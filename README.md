@@ -206,6 +206,14 @@ location of any kind is stored. The rollback is `workers/cook-log-service/rollba
 and lives outside `migrations/` on purpose, because wrangler applies every `.sql` file in that
 directory. Apply migrations to the local database first (`npx wrangler d1 migrations apply cook-log-db --local`).
 
+**Production migration history.** Production's `0001_create_cook_sessions.sql` was applied by hand, so
+`d1_migrations` was empty even though the table existed. On 2026-11-22 the table and both indexes were
+checked against `0001` (identical text), `0001` was recorded in `d1_migrations` with one insert, and
+`0002_add_weather_and_cut.sql` was then applied normally. Restore point taken just before:
+D1 Time Travel bookmark `0000000a-00000002-0000512b-f4f6b6a1154f5f1a0f638509845fb015`
+(`npx wrangler d1 time-travel restore cook-log-db --bookmark=<bookmark>`). From here on, use
+`migrations apply` for every change so `d1_migrations` stays accurate.
+
 **Deploying**:
 
 - [x] D1 database created (`cook-log-db`) and the migration applied — `wrangler.jsonc`'s
