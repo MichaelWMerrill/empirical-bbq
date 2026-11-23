@@ -5,7 +5,7 @@ import SiteFooter from '../components/SiteFooter.astro';
 
 <Layout
   title="Empirical BBQ | Privacy Policy"
-  description="Privacy Policy for Empirical BBQ — local browser storage, the opt-in anonymous cook log, Cloudflare Web Analytics, Amazon Associate affiliate links, and programmatic advertising cookies."
+  description="Privacy Policy for Empirical BBQ: local browser storage, the opt-in anonymous cook log, location and forecast handling, calendar files, Cloudflare Web Analytics, Amazon Associate affiliate links, and programmatic advertising cookies."
   ogUrl="https://empiricalbbq.com/privacy"
   favicon="🔒"
   bodyClass="page-privacy min-h-screen flex flex-col bg-base-850 text-base-300 font-display antialiased selection:bg-flame-500/30"
@@ -20,7 +20,7 @@ import SiteFooter from '../components/SiteFooter.astro';
           <span class="text-xs font-semibold tracking-wide text-flame-300 uppercase">Legal</span>
         </div>
         <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-[1.05]">Privacy Policy</h1>
-        <p class="mt-3 text-sm text-base-500 font-mono">Last updated: September 6, 2026</p>
+        <p class="mt-3 text-sm text-base-500 font-mono">Last updated: November 23, 2026</p>
       </header>
 
       <!-- Policy body -->
@@ -48,9 +48,10 @@ import SiteFooter from '../components/SiteFooter.astro';
           <p class="mt-3">
             The site also registers a <strong class="text-white">Service Worker</strong> so it can be installed
             like an app. It caches our own build files (scripts and stylesheets) on your device for faster
-            repeat visits — it does not cache pages or send any data anywhere, and it cannot see or intercept
-            the cook-log traffic described in Section 2. See Section 2 for the one feature on this site that
-            does send data off your device, and only if you turn it on.
+            repeat visits. It does not cache pages. It sends nothing on its own, with one exception: if you
+            turned on the cook log in Section 2 and an update could not be sent because you were offline, the
+            Service Worker sends that saved update when your connection returns. Section 2 describes the cook
+            log, the one feature on this site that sends data to us, and only if you turn it on.
           </p>
         </section>
 
@@ -60,8 +61,10 @@ import SiteFooter from '../components/SiteFooter.astro';
             The Stall Predictor pages offer an optional <strong class="text-white">cook log</strong>: if you
             choose to turn it on, we collect the protein type, weight, your cook's timeline (start, wrap,
             stall markers, finish, rest), and the calculator's predicted vs. actual cook time, plus whatever
-            optional details you choose to add (target pit temp, cook method, ambient temperature, altitude).
-            This is used only for a periodic, human-reviewed check on whether our calculator models need
+            optional details you choose to add (target pit temp, cook method, the cut for pork shoulder and
+            ribs, ambient temperature, altitude, and an expected low, high and wind for the day). The weather
+            numbers are only what you type, and the log records whether you typed them. Nothing is looked up
+            from your location or the forecast for the log. This is used only for a periodic, human-reviewed check on whether our calculator models need
             retuning — it is never sold, never used for advertising, and never combined with the analytics or
             advertising data described elsewhere in this policy.
           </p>
@@ -70,15 +73,50 @@ import SiteFooter from '../components/SiteFooter.astro';
             explicitly opt in. When you do, your browser generates a random id
             (<span class="font-mono text-base-200">crypto.randomUUID()</span>) stored in this site's local
             storage — it is not tied to your name, email, account, or device, and cannot be used to identify
-            you. We do not collect your name, email address, or precise location, ever; altitude, if you
-            choose to enter it, does not identify a person. You can turn this off at any time from the same
+            you. We do not collect your name or email address, and the cook log stores no location of any
+            kind: no coordinates and no place name. You can turn this off at any time from the same
             panel ("Stop sharing cook data"), which immediately stops any further sending and clears anything
             still queued on your device waiting to sync.
           </p>
         </section>
 
         <section>
-          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">3.</span> Anonymous Usage Analytics (Cloudflare Web Analytics)</h2>
+          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">3.</span> Location, Forecast &amp; Calendar</h2>
+          <p>
+            <strong class="text-white">Location.</strong> The cook scheduler page has a cook conditions card. Your
+            browser reads your location only when you tap the button, or automatically if you've allowed it for
+            this site or turned it on here before. It's rounded to about 1 km on your device, and only that
+            rounded position goes to the National Weather Service (<span class="font-mono text-base-200">api.weather.gov</span>),
+            which sends back the forecast and the elevation. As with any website you load, the National Weather
+            Service also sees your device's IP address, and it is governed by its own policies. The rounded
+            position is not sent to Empirical BBQ's servers and is not stored by this site. You can turn
+            automatic detection off with the Stop button on the card, or by changing this site's location
+            permission in your browser, and you can type the conditions in by hand instead.
+          </p>
+          <p class="mt-3">
+            <strong class="text-white">Forecast.</strong> The hourly forecast (temperature, dew point, wind and
+            sky), the elevation, the time zone and the name of the nearest town are kept in your browser's
+            session storage and reused for up to 30 minutes, so reloading the page does not fetch them again.
+            Your browser clears session storage when you close the tab. The forecast is shown for planning only;
+            the cook-time estimate does not use it.
+          </p>
+          <p class="mt-3">
+            <strong class="text-white">Choices kept on your device.</strong> Four choices are kept in your
+            browser's local storage under one key (<span class="font-mono text-base-200">ebq:cook-planner</span>):
+            your cooker type, whether you use an insulation blanket, whether to find your location
+            automatically, and your calendar choice (Apple, Google or Outlook). No location is stored there, only
+            the on or off choice.
+          </p>
+          <p class="mt-3">
+            <strong class="text-white">Calendar.</strong> The Add to calendar panel builds the calendar file in
+            your browser, and nothing about your cook is sent to us to make it. If you choose Google, opening a
+            step's link takes you to Google Calendar in a new tab with that step's title, time and notes filled
+            in, plus a line naming this site. What Google does with it is governed by Google's policies.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">4.</span> Anonymous Usage Analytics (Cloudflare Web Analytics)</h2>
           <p>
             We use <strong class="text-white">Cloudflare Web Analytics</strong> to understand aggregate, anonymous usage
             of the site (such as page views and general performance). Cloudflare Web Analytics is privacy-first: it does
@@ -91,7 +129,7 @@ import SiteFooter from '../components/SiteFooter.astro';
         </section>
 
         <section>
-          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">4.</span> Amazon Associate Affiliate Links</h2>
+          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">5.</span> Amazon Associate Affiliate Links</h2>
           <p>
             Empirical BBQ is a participant in the Amazon Services LLC Associates Program, an affiliate advertising
             program. Some outbound links on our pages are affiliate links, and
@@ -104,7 +142,7 @@ import SiteFooter from '../components/SiteFooter.astro';
         </section>
 
         <section>
-          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">5.</span> Programmatic Advertising &amp; Cookies</h2>
+          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">6.</span> Programmatic Advertising &amp; Cookies</h2>
           <p>
             We may display advertising served by third-party programmatic ad networks, including
             <strong class="text-white">Google AdSense</strong>. These networks may use cookies — including Google's
@@ -139,17 +177,19 @@ import SiteFooter from '../components/SiteFooter.astro';
         </section>
 
         <section>
-          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">6.</span> Information We Do Not Collect</h2>
+          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">7.</span> Information We Do Not Collect</h2>
           <p>
             We do not require registration and do not collect names, email addresses, passwords, or payment
             information on this site — including through the opt-in cook log described in Section 2. We do not
-            sell or rent personal information. Aside from the anonymized, opt-in cook log, the only data tied to
-            your device lives in your own browser's local storage, as described in Section 1.
+            sell or rent personal information. We do not collect your location: the cook conditions card sends a
+            rounded position from your browser to the National Weather Service, not to us (Section 3). Aside
+            from the anonymized, opt-in cook log, the only data tied to your device lives in your own browser's
+            local and session storage, as described in Sections 1 and 3.
           </p>
         </section>
 
         <section>
-          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">7.</span> Third-Party Links</h2>
+          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">8.</span> Third-Party Links</h2>
           <p>
             Our site links to third-party websites (such as Amazon and advertisers). We are not responsible for the
             privacy practices or content of those sites. We encourage you to review the privacy policy of any site you
@@ -158,7 +198,7 @@ import SiteFooter from '../components/SiteFooter.astro';
         </section>
 
         <section>
-          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">8.</span> Children's Privacy</h2>
+          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">9.</span> Children's Privacy</h2>
           <p>
             This site is intended for a general audience and is not directed to children under 13. We do not knowingly
             collect personal information from children.
@@ -166,7 +206,7 @@ import SiteFooter from '../components/SiteFooter.astro';
         </section>
 
         <section>
-          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">9.</span> Changes to This Policy</h2>
+          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">10.</span> Changes to This Policy</h2>
           <p>
             We may update this Privacy Policy from time to time. Changes take effect when posted on this page, and the
             "Last updated" date above will be revised accordingly.
@@ -174,7 +214,7 @@ import SiteFooter from '../components/SiteFooter.astro';
         </section>
 
         <section>
-          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">10.</span> Contact</h2>
+          <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><span class="text-flame-400">11.</span> Contact</h2>
           <p>
             Questions about this Privacy Policy can be directed to
             <a href="mailto:privacy@empiricalbbq.com">privacy@empiricalbbq.com</a>.
