@@ -10,6 +10,8 @@
   "observability": {
     "enabled": true
   },
+  // The Worker is reached only through the empiricalbbq.com route below, never on a workers.dev address.
+  "workers_dev": false,
   // A Route (not a Custom Domain) scoped to just this path prefix.
   // pitmaster-command-center serves the rest of empiricalbbq.com (almost
   // certainly via a Custom Domain, where the Worker IS the origin for the
