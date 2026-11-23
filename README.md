@@ -223,6 +223,11 @@ D1 Time Travel bookmark `0000000a-00000002-0000512b-f4f6b6a1154f5f1a0f638509845f
       automatically. A Route always takes precedence over a Custom Domain for the paths it
       matches, so this coexists with however `pitmaster-command-center` serves the rest of the
       zone without touching it.
+- [x] Deployed by Cloudflare Workers Builds from this folder on main. The old
+      MichaelWMerrill/cook-log-service repo is retired. (Build settings: root
+      `workers/cook-log-service`, watch path `workers/cook-log-service/*`, no build command,
+      deploy command `npx wrangler deploy`. A change that touches only files outside that
+      folder, such as this README, does not trigger a build.)
 - [x] The Worker deployed and **live in production** (2026-09-06). Cloudflare's git-integrated
       Workers Build auto-deploys `cook-log-service` on every push to `main` — no manual
       `wrangler deploy` needed going forward. Getting here took two fixes, both merged:
