@@ -30,3 +30,10 @@
 - `claude`: CLAUDE.md and everything under .claude/, including agents
 - `github`: .github/** (workflows, templates) and commitlint.config.mjs
 - `golden`: the golden regression specs in src/utils/__tests__/*Engine.spec.js and scripts/gen-golden.mjs
+
+## Dependencies
+- Applies to npm packages, GitHub Actions, Docker images, and vendored assets.
+- Pin the newest release that is at least 14 days old. Name the version and its release date in the PR body.
+- GitHub Actions: pin to a full commit SHA, with the version tag in a comment. For annotated tags, use the peeled commit SHA, not the tag object.
+- npm: package.json uses caret ranges, so the version resolved in package-lock.json must meet the 14-day rule, not just the range in package.json.
+- Security exception: a fix for a known vulnerability that affects this repo may be pinned immediately. Cite the advisory in the commit body.
