@@ -1,0 +1,77 @@
+name: Conventional Commits
+
+# Checks the PR title and every commit in the PR. Merges are rebase only, so
+# each commit lands on main as written. Types and scopes must match
+# commitlint.config.mjs and the Commits section of CLAUDE.md.
+#
+# Deliberately pull_request, not pull_request_target: nothing here needs
+# write access or secrets, and PR code is never run with elevated rights.
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions: {}
+
+jobs:
+  pr-title:
+    name: PR title
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - uses: amannn/action-semantic-pull-request@2252a14e810aa9b85c2d560bd7070c802206ecf6 # v6.1.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+          scopes: |
+            conditions
+            scheduler
+            calendar
+            cook-log
+            model
+            calculators
+            gear
+            blog
+            recipes
+            copy
+            seo
+            site
+            security
+            privacy
+            deps
+            vendor
+            claude
+            github
+            golden
+          requireScope: false
+          # Reject a capitalized first letter in the summary.
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            The summary "{subject}" must start with a lowercase letter.
+            Example: "fix(copy): correct the rest-time wording".
+
+  commitlint:
+    name: Commitlint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # v6.2.1
+        with:
+          configFile: commitlint.config.mjs
