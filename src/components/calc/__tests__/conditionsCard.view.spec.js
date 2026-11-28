@@ -57,10 +57,11 @@ describe('buildConditionsView: auto-detected', () => {
   test('the hourly strip is in the cook location zone, one cell per hour in the window', async () => {
     const v = buildConditionsView(await nws(), win('14:00', '17:00'));
     expect(v.strip.label).toBe('Times in Mountain Time');
+    const sky = { icon: 'cloud', precip: '', label: 'Mostly cloudy' }; // recorded hours: Mostly Cloudy, 0% precipitation
     expect(v.strip.cells).toEqual([
-      { hour: '2 PM', day: 'Sun', temp: '45°', wind: '1 mph' },
-      { hour: '3 PM', day: '', temp: '46°', wind: '1 mph' },
-      { hour: '4 PM', day: '', temp: '44°', wind: '1 mph' },
+      { hour: '2 PM', day: 'Sun', temp: '45°', wind: '1 mph', ...sky },
+      { hour: '3 PM', day: '', temp: '46°', wind: '1 mph', ...sky },
+      { hour: '4 PM', day: '', temp: '44°', wind: '1 mph', ...sky },
     ]);
   });
 
@@ -160,5 +161,80 @@ describe('copy', () => {
   test('the required planning line is the approved wording', () => {
     expect(PLANNING_LINE).toBe("Shown for planning. The time estimate doesn't use these conditions yet.");
     expect(SOURCE_CREDIT).toBe('Forecast: National Weather Service');
+  });
+});
+
+describe('buildConditionsView: weather icons and precipitation chance', () => {
+  // Recorded hours 14:00, 15:00, 16:00 are inside win('14:00', '17:00'); 18:00 is after dark.
+  const periods = (h, fn) => h.properties.periods.forEach(fn);
+  const set = (p, sky, isDaytime, pct) => {
+    p.shortForecast = sky;
+    p.isDaytime = isDaytime;
+    p.probabilityOfPrecipitation.value = pct;
+  };
+
+  test('each cell carries its icon key, precipitation text and a screen-reader label', async () => {
+    const h = clone(hourlyFixture);
+    set(h.properties.periods[1], 'Slight Chance Rain Showers then Partly Cloudy', true, 40);
+    set(h.properties.periods[2], 'Mostly Clear', false, 10);
+    set(h.properties.periods[3], 'Wintry Mix', true, 100);
+    const v = buildConditionsView(await nws(h), win('14:00', '17:00'));
+    expect(v.strip.cells.map((c) => [c.icon, c.precip, c.label])).toEqual([
+      ['cloud-rain', '40%', 'Slight chance rain showers then partly cloudy, 40% chance of precipitation'],
+      ['cloud-moon', '', 'Mostly clear'],
+      [null, '100%', 'Wintry mix, 100% chance of precipitation'],
+    ]);
+  });
+
+  test('a chance under 20% is hidden, 20% is shown, and a missing value is hidden', async () => {
+    const h = clone(hourlyFixture);
+    set(h.properties.periods[1], 'Cloudy', true, 19);
+    set(h.properties.periods[2], 'Cloudy', true, 20);
+    set(h.properties.periods[3], 'Cloudy', true, null);
+    const v = buildConditionsView(await nws(h), win('14:00', '17:00'));
+    expect(v.strip.cells.map((c) => c.precip)).toEqual(['', '20%', '']);
+  });
+
+  test('the strip reserves the icon and precipitation lines when any tile has one', async () => {
+    const v = buildConditionsView(await nws(), win('14:00', '17:00')); // Mostly Cloudy -> an icon
+    expect(v.strip.slots).toBe(true);
+  });
+
+  test('a strip with no icon and no precipitation chance is left as it was', async () => {
+    const h = clone(hourlyFixture);
+    periods(h, (p) => set(p, 'Wintry Mix', true, 0));
+    const v = buildConditionsView(await nws(h), win('14:00', '17:00'));
+    expect(v.strip.slots).toBe(false);
+    expect(v.strip.cells.every((c) => c.icon === null && c.precip === '')).toBe(true);
+    expect(v.rows.find((r) => r.key === 'sky')).not.toHaveProperty('icon');
+  });
+
+  test('the Sky row icon uses the same mapper, with day or night from the first hour that has the winning text', async () => {
+    const h = clone(hourlyFixture);
+    set(h.properties.periods[4], 'Mostly Clear', false, 0); // 17:00 MST, night in this forecast
+    set(h.properties.periods[5], 'Mostly Clear', false, 0);
+    const night = buildConditionsView(await nws(h), win('17:00', '19:00'));
+    expect(night.rows.find((r) => r.key === 'sky')).toMatchObject({ value: 'Mostly Clear', icon: 'cloud-moon' });
+    periods(h, (p) => set(p, 'Mostly Clear', true, 0));
+    const day = buildConditionsView(await nws(h), win('14:00', '17:00'));
+    expect(day.rows.find((r) => r.key === 'sky')).toMatchObject({ icon: 'cloud-sun' });
+  });
+
+  test('forecast data without isDaytime or precipitation still builds, and never guesses a sun or moon', async () => {
+    const h = clone(hourlyFixture);
+    periods(h, (p) => {
+      p.shortForecast = 'Mostly Clear';
+      delete p.isDaytime;
+      delete p.probabilityOfPrecipitation;
+    });
+    const v = buildConditionsView(await nws(h), win('14:00', '17:00'));
+    expect(v.strip.cells.every((c) => c.icon === null && c.precip === '')).toBe(true);
+    expect(v.rows.find((r) => r.key === 'sky')).not.toHaveProperty('icon');
+  });
+
+  test('manual conditions have no sky row and no icons', () => {
+    const v = buildConditionsView(manualConditions({ elevationFt: 5200, lowF: 38, highF: 62, windMph: 8 }), win('14:00', '17:00'));
+    expect(v.rows.some((r) => r.key === 'sky')).toBe(false);
+    expect(v.strip).toBeNull();
   });
 });

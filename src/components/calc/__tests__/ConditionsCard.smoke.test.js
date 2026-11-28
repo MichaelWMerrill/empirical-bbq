@@ -554,3 +554,96 @@ describe('accessibility and copy', () => {
     expect(card.getState().status).toBe('ready');
   });
 });
+
+describe('weather icons and precipitation chance on the hourly tiles', () => {
+  const setPeriod = (p, sky, isDaytime, pct) => {
+    p.shortForecast = sky;
+    p.isDaytime = isDaytime;
+    p.probabilityOfPrecipitation.value = pct;
+  };
+  const tiles = () => [...document.querySelectorAll('#condStripGrid li')];
+  const tags = (li) => [...li.children].map((el) => el.tagName);
+
+  async function mixed() {
+    const h = clone(hourlyFixture);
+    setPeriod(h.properties.periods[1], 'Sunny', true, 40);
+    setPeriod(h.properties.periods[2], 'Mostly Clear', false, 10);
+    setPeriod(h.properties.periods[3], 'Wintry Mix', true, 100);
+    await setup({ permission: 'granted', conditions: await nwsConditions(h) });
+  }
+
+  it('puts a 16px decorative icon between the time and the temperature, with the chance under it', async () => {
+    await mixed();
+    const [a] = tiles();
+    // day, time, icon slot, precipitation, temperature, wind, hidden text
+    expect(tags(a)).toEqual(['P', 'P', 'DIV', 'P', 'P', 'P', 'SPAN']);
+    const svg = a.querySelector('svg');
+    expect(svg.getAttribute('width')).toBe('16');
+    expect(svg.getAttribute('height')).toBe('16');
+    expect(svg.getAttribute('aria-hidden')).toBe('true');
+    expect(svg.getAttribute('stroke')).toBe('currentColor');
+    for (const s of document.querySelectorAll('#condStripGrid svg, #condRows svg')) expect(s.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('every tile in a strip has the same lines, so they are the same height', async () => {
+    await mixed();
+    const all = tiles().map((li) => tags(li).join());
+    expect(new Set(all).size).toBe(1);
+    expect(all[0]).toBe('P,P,DIV,P,P,P,SPAN');
+  });
+
+  it('shows the chance from 20% up, and only that line is empty otherwise', async () => {
+    await mixed();
+    expect(tiles().map((li) => li.querySelector('[data-precip]').textContent)).toEqual(['40%', '', '100%']);
+    expect(tiles().every((li) => li.querySelector('[data-precip]').getAttribute('aria-hidden') === 'true')).toBe(true);
+  });
+
+  it('the sun is flame-400 and the other icons are white, like the temperature', async () => {
+    await mixed();
+    const [sun, moonCloud, none] = tiles();
+    expect(sun.querySelector('svg').parentElement.className).toContain('text-flame-400');
+    expect(moonCloud.querySelector('svg').parentElement.className).toContain('text-white');
+    expect(none.querySelector('svg')).toBeNull(); // unknown text: no icon, empty slot
+    expect(none.querySelector('.h-4')).not.toBeNull();
+  });
+
+  it('each tile has visually hidden text that says the sky and the chance in words', async () => {
+    await mixed();
+    expect(tiles().map((li) => li.querySelector('.sr-only').textContent)).toEqual([
+      'Sunny, 40% chance of precipitation',
+      'Mostly clear',
+      'Wintry mix, 100% chance of precipitation',
+    ]);
+  });
+
+  it('the Sky row shows the same mapper icon next to its text', async () => {
+    await mixed();
+    const dd = document.querySelector('#condRows [data-row=sky] dd');
+    expect(dd.textContent).toBe('Sunny'); // three different hours: the earliest wins the tie
+    expect(dd.querySelector('svg')).not.toBeNull();
+    expect(dd.querySelector('svg').parentElement.className).toContain('text-flame-400');
+  });
+
+  it('tiles with no icon and no chance are as before, plus the hidden text', async () => {
+    const h = clone(hourlyFixture);
+    for (const p of h.properties.periods) setPeriod(p, 'Wintry Mix', true, 0);
+    await setup({ permission: 'granted', conditions: await nwsConditions(h) });
+    for (const li of tiles()) {
+      expect(tags(li)).toEqual(['P', 'P', 'P', 'P', 'SPAN']);
+      expect(li.querySelector('svg')).toBeNull();
+    }
+    expect(document.querySelector('#condRows [data-row=sky] svg')).toBeNull();
+  });
+
+  it('forecast data from before these fields existed (a cached entry) still renders', async () => {
+    const conditions = await nwsConditions();
+    for (const p of conditions.hourly) {
+      delete p.isDaytime;
+      delete p.precipPct;
+      p.sky = 'Mostly Clear';
+    }
+    await setup({ permission: 'granted', conditions });
+    expect(tiles()).toHaveLength(3);
+    expect(document.querySelectorAll('#condStripGrid svg')).toHaveLength(0); // never a guessed sun or moon
+  });
+});

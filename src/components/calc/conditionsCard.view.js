@@ -5,6 +5,7 @@
  * Display only. Nothing here is read back into the cook-time estimate.
  */
 import { windowSummary, boilingPointF } from '../../utils/conditions.js';
+import { conditionIcon, precipPercent } from '../../utils/conditionIcon.js';
 
 const HOUR_MS = 3600 * 1000;
 
@@ -81,13 +82,27 @@ function stripCells(periods, timeZone) {
     const dayKey = dayKeyFmt.format(d);
     const day = dayKey !== prevDay ? dayFmt.format(d) : '';
     prevDay = dayKey;
+    const pct = precipPercent(p.precipPct);
     return {
       hour: hourFmt.format(d),
       day,
       temp: `${whole(p.tempF)}°`,
       wind: p.windMph == null ? '' : `${whole(p.windMph)} mph`,
+      icon: conditionIcon(p.sky, p.isDaytime),
+      precip: pct == null ? '' : `${pct}%`,
+      label: cellLabel(p.sky, pct),
     };
   });
+}
+
+const sentenceCase = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : '');
+
+/**
+ * Text for screen readers, since the icon and the percentage are visual:
+ * "Mostly cloudy, 40% chance of precipitation". Empty when there is nothing to say.
+ */
+function cellLabel(sky, pct) {
+  return [sentenceCase(sky), pct == null ? '' : `${pct}% chance of precipitation`].filter(Boolean).join(', ');
 }
 
 function missingNote(summary) {
@@ -106,8 +121,8 @@ function missingNote(summary) {
  * @param {{start: Date|number, end: Date|number}|null} cookWindow  Meat on to pull, from the scheduler.
  * @returns {{
  *   source: 'nws'|'manual', pill: string, place: string|null,
- *   rows: Array<{key: string, label: string, value: string, note?: string}>,
- *   strip: {label: string, cells: Array<{hour, day, temp, wind}>}|null,
+ *   rows: Array<{key: string, label: string, value: string, note?: string, icon?: string}>,
+ *   strip: {label: string, slots: boolean, cells: Array<{hour, day, temp, wind, icon, precip, label}>}|null,
  *   note: string|null, credit: string|null
  * }}
  *   Rows whose value is missing are left out (for example, Gusts when the feed
@@ -158,8 +173,18 @@ export function buildConditionsView(conditions, cookWindow) {
   if (!manual) {
     const periods = hourlyInWindow(conditions, startMs, endMs);
     const sky = mostCommon(periods.map((p) => p.sky));
-    if (sky) rows.push({ key: 'sky', label: 'Sky', value: sky, note: SKY_NOTE });
-    if (periods.length) view.strip = { label: zoneLabel(conditions.timeZone, new Date(startMs)), cells: stripCells(periods, conditions.timeZone) };
+    if (sky) {
+      // Day or night for the Sky icon comes from the first hour that has the winning text.
+      const icon = conditionIcon(sky, periods.find((p) => p.sky === sky)?.isDaytime);
+      rows.push({ key: 'sky', label: 'Sky', value: sky, note: SKY_NOTE, ...(icon ? { icon } : {}) });
+    }
+    if (periods.length) {
+      const cells = stripCells(periods, conditions.timeZone);
+      // `slots`: when any tile has an icon or a precipitation chance, every tile reserves
+      // both lines (empty where there is nothing) so the temperatures line up. With none,
+      // the tiles are exactly as they were before icons.
+      view.strip = { label: zoneLabel(conditions.timeZone, new Date(startMs)), cells, slots: cells.some((c) => c.icon || c.precip) };
+    }
     view.note = missingNote(s);
   }
   return view;

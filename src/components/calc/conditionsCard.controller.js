@@ -23,6 +23,7 @@
 import { getPosition, fetchConditions, manualConditions } from '../../utils/conditions.js';
 import { readPrefs, writePrefs } from '../../utils/plannerPrefs.js';
 import { buildConditionsView, summaryLine, MINI_PROMPT, MINI_LOADING, MINI_ERROR } from './conditionsCard.view.js';
+import { ICONS } from '../../vendor/lucide/index.js';
 
 const MESSAGES = {
   denied: 'Location is blocked for this site. Allow it in your browser settings, or enter conditions manually.',
@@ -131,6 +132,28 @@ export function initConditionsCard({ root = document, deps = {} } = {}) {
     for (const id of ['condBody', 'condPill', 'condPlace', 'condCredit']) show($(id), false);
   }
 
+  /*
+   * A 16px inline weather icon, or null for an unknown name. The markup is a
+   * vendored constant (src/vendor/lucide), never forecast text. It is decorative:
+   * aria-hidden, with the meaning carried by text. It draws in currentColor, so the
+   * wrapper's text color applies: white like the temperature, flame-400 for the sun.
+   */
+  function weatherIcon(name) {
+    if (!ICONS[name]) return null;
+    const wrap = root.createElement('span');
+    wrap.className = `inline-flex shrink-0 ${name === 'sun' ? 'text-flame-400' : 'text-white'}`;
+    // Drop the license comment and the pretty-printing between tags, so the DOM holds
+    // only the drawing (otherwise textContent picks up a run of blank lines). The
+    // vendored files themselves are not changed.
+    wrap.innerHTML = ICONS[name].replace(/<!--[\s\S]*?-->/g, '').replace(/>\s+</g, '><').trim();
+    const svg = wrap.querySelector('svg');
+    svg.setAttribute('width', '16');
+    svg.setAttribute('height', '16');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false');
+    return wrap;
+  }
+
   function renderBody() {
     if (!isReady() || state.formOpen) return hideBody();
     const view = buildConditionsView(state.conditions, state.window);
@@ -149,7 +172,13 @@ export function initConditionsCard({ root = document, deps = {} } = {}) {
       dt.textContent = r.label;
       const dd = root.createElement('dd');
       dd.className = 'text-sm font-semibold text-white';
-      dd.textContent = r.value;
+      const rowIcon = r.icon ? weatherIcon(r.icon) : null;
+      if (rowIcon) {
+        dd.className += ' flex items-center gap-1.5';
+        dd.append(rowIcon, root.createTextNode(r.value));
+      } else {
+        dd.textContent = r.value;
+      }
       wrap.append(dt, dd);
       if (r.note) {
         const n = root.createElement('p');
@@ -176,10 +205,28 @@ export function initConditionsCard({ root = document, deps = {} } = {}) {
         };
         li.append(
           line('text-[10px] leading-3 h-3 text-flame-400 font-semibold', c.day),
-          line('text-[11px] leading-4 text-base-300', c.hour),
-          line('text-sm leading-5 font-bold text-white', c.temp),
-          line('text-[10px] leading-3 text-base-300', c.wind)
+          line('text-[11px] leading-4 text-base-300', c.hour)
         );
+        if (view.strip.slots) {
+          // Icon, then the precipitation chance: both lines are always present in a strip
+          // that has any, at a fixed height, so every tile is the same height. The visible
+          // percentage is hidden from screen readers; the label below says it in words.
+          const iconSlot = root.createElement('div');
+          iconSlot.className = 'flex h-4 items-center justify-center';
+          const icon = c.icon ? weatherIcon(c.icon) : null;
+          if (icon) iconSlot.append(icon);
+          const precip = line('text-[10px] leading-3 h-3 whitespace-nowrap font-semibold text-sky-300', c.precip);
+          precip.dataset.precip = '';
+          precip.setAttribute('aria-hidden', 'true');
+          li.append(iconSlot, precip);
+        }
+        li.append(line('text-sm leading-5 font-bold text-white', c.temp), line('text-[10px] leading-3 text-base-300', c.wind));
+        if (c.label) {
+          const sr = root.createElement('span');
+          sr.className = 'sr-only';
+          sr.textContent = c.label;
+          li.append(sr);
+        }
         grid.append(li);
       }
     }

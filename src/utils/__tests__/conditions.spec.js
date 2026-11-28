@@ -102,7 +102,20 @@ describe('fetchConditions', () => {
       windMph: 3,
       gustMph: null, // windGust is absent in the feed
       sky: 'Cloudy',
+      isDaytime: true,
+      precipPct: 0,
     });
+  });
+
+  test('isDaytime and the precipitation chance are passed through for display', async () => {
+    const h = clone(hourlyFixture);
+    h.properties.periods[1].probabilityOfPrecipitation.value = 40;
+    h.properties.periods[2].probabilityOfPrecipitation.value = null; // NWS sends null when it has no value
+    delete h.properties.periods[3].probabilityOfPrecipitation;
+    delete h.properties.periods[4].isDaytime;
+    const c = await fetchConditions(40.13, -111.58, { fetchImpl: nwsFetch({ hourly: h }), storage: memStorage(), now: () => NOW });
+    expect(c.hourly.map((p) => p.isDaytime)).toEqual([true, true, true, true, null, false]); // 18:00 is after dark
+    expect(c.hourly.map((p) => p.precipPct)).toEqual([0, 40, null, null, 0, 0]);
   });
 
   test('requests rounded coordinates, then the forecastHourly URL, as plain GETs', async () => {
