@@ -180,6 +180,10 @@ function normalizePeriod(p) {
     windMph: parseWindMph(p?.windSpeed),
     gustMph: parseWindMph(p?.windGust), // usually absent: null
     sky: typeof p?.shortForecast === 'string' ? p.shortForecast : '',
+    // Passed through for display only: day/night picks the weather icon, and
+    // precipPct is the chance of precipitation in percent. null when absent.
+    isDaytime: typeof p?.isDaytime === 'boolean' ? p.isDaytime : null,
+    precipPct: numOrNull(p?.probabilityOfPrecipitation?.value),
   };
 }
 
